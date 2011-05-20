@@ -9,11 +9,13 @@ import java.util.Properties;
 import java.util.logging.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.Plugin;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
+import com.sleelin.pvptoggle.commands.*;
 
 /**
  * PvPToggle
@@ -27,15 +29,17 @@ public class PvPToggle extends JavaPlugin {
 	static Properties prop = new Properties();
 	static File configfile = new File (mainDirectory + File.separator + "config.yml");
 	static boolean defaultenabled;
-	
+		
 	public static PermissionHandler permissionHandler;
 	
 	private final PvPTogglePlayerListener playerListener = new PvPTogglePlayerListener(this);
 	private final PvPToggleEntityListener EntityListener = new PvPToggleEntityListener(this);
 	public final HashMap<Player, Boolean> players = new HashMap<Player, Boolean>();
-	Logger log = Logger.getLogger("Minecraft");
+	public Logger log = Logger.getLogger("Minecraft");
 	
 	public void onEnable(){
+		PluginDescriptionFile pdfFile = this.getDescription();
+		System.out.println(pdfFile.getName() + " Loading...");
 		new File(mainDirectory).mkdir();
 		if (!configfile.exists()){
 			try {
@@ -55,11 +59,13 @@ public class PvPToggle extends JavaPlugin {
 		}
 		setupPermissions();
 		
+		getCommand("pvp").setExecutor(new pvpCommand(this));
+		
 		PluginManager pm = this.getServer().getPluginManager();
 		pm.registerEvent(Event.Type.PLAYER_CHAT, this.playerListener, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.PLAYER_LOGIN, this.playerListener, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.EntityListener, Event.Priority.Normal, this);
-		log.info("PvPToggle Enabled");
+		log.info("[PvPToggle] PvPToggle Enabled");
 	}
 	
 	private void setupPermissions(){
@@ -69,7 +75,7 @@ public class PvPToggle extends JavaPlugin {
 			if (permissionsPlugin != null){
 				PvPToggle.permissionHandler = ((Permissions) permissionsPlugin).getHandler();
 			} else {
-				log.info("Permissions system not detected, defaulting to OP");
+				log.info("[PvPToggle] Permissions system not detected, defaulting to OP");
 			}
 		}
 	}
@@ -93,6 +99,7 @@ public class PvPToggle extends JavaPlugin {
 	}
 
 	public boolean pvpEnabled(Player player) {
+		
 		return players.get(player);
 	}
 	
