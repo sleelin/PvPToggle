@@ -18,7 +18,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
 		if (args.length == 0){
-			sender.sendMessage("Usage: /gpvp [on|off|status]");
+			sendUsage(sender);
 			return true;
 		}
 
@@ -46,13 +46,17 @@ public class globalpvpPluginCommand implements CommandExecutor {
 			
 			if (haspermissions){
 				Player players[] = plugin.getServer().getOnlinePlayers();
+				
 				boolean enable = false;
-				if ((args[1].equalsIgnoreCase("on"))||(args[1].equalsIgnoreCase("enable"))){
+				if ((args[0].equalsIgnoreCase("on"))||(args[0].equalsIgnoreCase("enable"))){
 					enable = true;
 					plugin.gpvpEnable();
-				} else if ((args[1].equalsIgnoreCase("off"))||(args[1].equalsIgnoreCase("disable"))){
+				} else if ((args[0].equalsIgnoreCase("off"))||(args[0].equalsIgnoreCase("disable"))){
 					enable = false;
 					plugin.gpvpDisable();
+				} else {
+					sendUsage(sender);
+					return true;
 				}
 				String displayname = null;
 				if (!(sender instanceof Player)){
@@ -83,6 +87,10 @@ public class globalpvpPluginCommand implements CommandExecutor {
 		}		
 		
 		return true;
+	}
+
+	private void sendUsage(CommandSender sender) {
+		sender.sendMessage("Usage: /gpvp [on|off|status]");		
 	}
 
 }
