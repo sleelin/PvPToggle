@@ -27,8 +27,9 @@ import com.sleelin.pvptoggle.commands.*;
 public class PvPToggle extends JavaPlugin {
 	static String mainDirectory = "plugins/PvPToggle";
 	static Properties prop = new Properties();
-	static File configfile = new File (mainDirectory + File.separator + "config.yml");
-	static boolean defaultenabled;
+	static File configfile = new File (mainDirectory + File.separator + "config.conf");
+	public static boolean defaultdisabled;
+	static boolean globaldisabled;
 		
 	public static PermissionHandler permissionHandler;
 	
@@ -39,13 +40,15 @@ public class PvPToggle extends JavaPlugin {
 	
 	public void onEnable(){
 		PluginDescriptionFile pdfFile = this.getDescription();
-		System.out.println(pdfFile.getName() + " Loading...");
+		System.out.println("[" + pdfFile.getName() + "] Loading...");
 		new File(mainDirectory).mkdir();
 		if (!configfile.exists()){
 			try {
+				log.info("[" + pdfFile.getName() + "] Config file not found, autogenerating...");
 				configfile.createNewFile();
 				FileOutputStream out = new FileOutputStream(configfile);
-				prop.put("PvPEnabledOnStartup", "false");
+				prop.put("defaultDisabled", "false");
+				prop.put("globalDisabled", "false");
 				prop.store(out, "PvPToggle Config File");
 			} catch (IOException ex){
 				ex.printStackTrace();
@@ -59,23 +62,40 @@ public class PvPToggle extends JavaPlugin {
 		}
 		setupPermissions();
 		
-		getCommand("pvp").setExecutor(new pvpCommand(this));
+		getCommand("pvp").setExecutor(new pvpPluginCommand(this));
+		getCommand("gpvp").setExecutor(new globalpvpPluginCommand(this));
 		
 		PluginManager pm = this.getServer().getPluginManager();
 		pm.registerEvent(Event.Type.PLAYER_CHAT, this.playerListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.PLAYER_LOGIN, this.playerListener, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.PLAYER_JOIN, this.playerListener, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.EntityListener, Event.Priority.Normal, this);
-		log.info("[PvPToggle] PvPToggle Enabled");
+		
+		registerOnlinePlayers(this.getServer().getOnlinePlayers());
+		
+		System.out.println("["+ pdfFile.getName() + "] Enabled!");
 	}
 	
+	private void registerOnlinePlayers(Player[] onlinePlayers) {
+		for (Player player : onlinePlayers){
+			if (PvPToggle.defaultdisabled){
+				this.pvpDisable(player);
+			} else {
+				this.pvpEnable(player);
+			}
+		}
+		
+	}
+
 	private void setupPermissions(){
+		PluginDescriptionFile pdfFile = this.getDescription();
 		Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
 		
 		if (PvPToggle.permissionHandler == null){
 			if (permissionsPlugin != null){
 				PvPToggle.permissionHandler = ((Permissions) permissionsPlugin).getHandler();
+				log.info("[" + pdfFile.getName() + "] Permissions system detected!");
 			} else {
-				log.info("[PvPToggle] Permissions system not detected, defaulting to OP");
+				log.info("[" + pdfFile.getName() + "] Permissions system not detected, defaulting to OP");
 			}
 		}
 	}
@@ -83,7 +103,8 @@ public class PvPToggle extends JavaPlugin {
 	public void loadProcedure() throws IOException {
 		FileInputStream in = new FileInputStream(configfile);
 		prop.load(in);
-		defaultenabled = Boolean.parseBoolean(prop.getProperty("PvPEnabledOnStartup", "false"));
+		defaultdisabled = Boolean.parseBoolean(prop.getProperty("defaultDisabled", "false"));
+		globaldisabled = Boolean.parseBoolean(prop.getProperty("globalDisabled", "false"));
 	}
 
 	public void onDisable(){
@@ -101,6 +122,22 @@ public class PvPToggle extends JavaPlugin {
 	public boolean pvpEnabled(Player player) {
 		
 		return players.get(player);
+	}
+
+	public boolean gpvpEnabled() {
+		if (globaldisabled == false){
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public void gpvpEnable() {
+		globaldisabled = false;
+	}
+
+	public void gpvpDisable() {
+		globaldisabled = true;
 	}
 	
 }
