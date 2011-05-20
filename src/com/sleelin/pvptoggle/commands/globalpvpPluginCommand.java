@@ -17,8 +17,6 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
-		Player player = (Player) sender;
-		
 		if (args.length == 0){
 			sender.sendMessage("Usage: /gpvp [on|off|status]");
 			return true;
@@ -35,12 +33,14 @@ public class globalpvpPluginCommand implements CommandExecutor {
 		
 		if (args.length == 1){
 			boolean haspermissions = false;
-			if (PvPToggle.permissionHandler != null){
-				if (PvPToggle.permissionHandler.has(player, "pvptoggle.gadmin")){
-					haspermissions = true;
+			if (sender instanceof Player){
+				if (PvPToggle.permissionHandler != null){
+					if (PvPToggle.permissionHandler.has((Player) sender, "pvptoggle.gadmin")){
+						haspermissions = true;
+					}
 				}
 			}
-			if (player.isOp()){
+			if (sender.isOp()){
 				haspermissions = true;
 			}
 			
@@ -54,13 +54,21 @@ public class globalpvpPluginCommand implements CommandExecutor {
 					enable = false;
 					plugin.gpvpDisable();
 				}
+				String displayname = null;
+				if (!(sender instanceof Player)){
+					displayname = "Console User";
+				} else {
+					displayname = ((Player) sender).getDisplayName();
+				}
+				
+				
 				for (Player p : players){
 					if (enable){
 						plugin.pvpEnable(p);
-						p.sendMessage(ChatColor.GOLD + "Global PvP Enabled by " + player.getDisplayName() + "!");
+						p.sendMessage(ChatColor.GOLD + "Global PvP Enabled by " + displayname + "!");
 					} else {
 						plugin.pvpDisable(p);
-						p.sendMessage(ChatColor.GOLD + "Global PvP Disabled by " + player.getDisplayName() + "!");
+						p.sendMessage(ChatColor.GOLD + "Global PvP Disabled by " + displayname + "!");
 					}
 				}
 				if (enable){
@@ -70,7 +78,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 				}
 				
 			} else {
-				player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+				sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 			}
 		}		
 		

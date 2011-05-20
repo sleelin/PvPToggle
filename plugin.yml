@@ -6,3 +6,7 @@ commands:
         description: Toggles whether player can take damage from another player
         uasge: |
             /pvp [on|off|enable|disable]
+    gpvp:
+        description: Toggles global pvp status
+        uasge: |
+            /gpvp [on|off|enable|disable]
