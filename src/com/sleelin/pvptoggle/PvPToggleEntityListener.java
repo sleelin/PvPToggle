@@ -33,7 +33,7 @@ public class PvPToggleEntityListener extends EntityListener {
 					}					
 					
 					if (haspermissions){
-						boolean isenabled = plugin.pvpEnabled(player);
+						boolean isenabled = plugin.pvpEnabled(player, player.getWorld().toString());
 						boolean genabled = plugin.gpvpEnabled();
 						if ((!isenabled)||(!genabled)){
 							String message = null;

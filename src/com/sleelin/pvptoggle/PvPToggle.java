@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -35,8 +36,10 @@ public class PvPToggle extends JavaPlugin {
 	
 	private final PvPTogglePlayerListener playerListener = new PvPTogglePlayerListener(this);
 	private final PvPToggleEntityListener EntityListener = new PvPToggleEntityListener(this);
-	public final HashMap<Player, Boolean> players = new HashMap<Player, Boolean>();
+	public final ArrayList<HashMap<Player, Boolean>> worlds = new ArrayList<HashMap<Player, Boolean>>();
+	public final static HashMap<String, Boolean> worldstatus = new HashMap<String, Boolean>();
 	public Logger log = Logger.getLogger("Minecraft");
+	public static String worldnames[];
 	
 	public void onEnable(){
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -78,9 +81,9 @@ public class PvPToggle extends JavaPlugin {
 	private void registerOnlinePlayers(Player[] onlinePlayers) {
 		for (Player player : onlinePlayers){
 			if (PvPToggle.defaultdisabled){
-				this.pvpDisable(player);
+				this.pvpDisable(player, player.getWorld().toString());
 			} else {
-				this.pvpEnable(player);
+				this.pvpEnable(player, player.getWorld().toString());
 			}
 		}
 		
@@ -105,22 +108,40 @@ public class PvPToggle extends JavaPlugin {
 		prop.load(in);
 		defaultdisabled = Boolean.parseBoolean(prop.getProperty("defaultDisabled", "false"));
 		globaldisabled = Boolean.parseBoolean(prop.getProperty("globalDisabled", "false"));
+		worldnames = prop.getProperty("worlds", "world").toLowerCase().split(",\\s*");
+		String loadworldstatus[] = prop.getProperty("worldstatus", "true").toLowerCase().split(",\\s*");
+
+		for (int i = 0; i < worldnames.length; i++){
+			HashMap<Player, Boolean> players = new HashMap<Player, Boolean>();
+			worlds.add(players);
+			worldstatus.put(worldnames[i], Boolean.parseBoolean(loadworldstatus[i]));
+		}
 	}
 
 	public void onDisable(){
 		log.info("PvPToggle Disabled");
 	}
 	
-	public void pvpEnable(Player player) {
-		players.put(player, true);		
+	private int getWorldIndex(String world) {
+		return 0;
+	}
+	
+	public void pvpEnable(Player player, String world) {
+		HashMap<Player, Boolean> players = worlds.get(getWorldIndex(world));
+		players.put(player, true);
+		worlds.remove(getWorldIndex(world));
+		worlds.add(getWorldIndex(world), players);
 	}
 
-	public void pvpDisable(Player player) {
-		players.put(player, false);		
+	public void pvpDisable(Player player, String world) {
+		HashMap<Player, Boolean> players = worlds.get(getWorldIndex(world));
+		players.put(player, false);
+		worlds.remove(getWorldIndex(world));
+		worlds.add(getWorldIndex(world), players);	
 	}
 
-	public boolean pvpEnabled(Player player) {
-		
+	public boolean pvpEnabled(Player player, String world) {
+		HashMap<Player, Boolean> players = worlds.get(getWorldIndex(world));
 		return players.get(player);
 	}
 
@@ -138,6 +159,27 @@ public class PvPToggle extends JavaPlugin {
 
 	public void gpvpDisable() {
 		globaldisabled = true;
+	}
+	
+	public boolean permissionsCheck(Player player, String permissions){
+		boolean haspermissions = false;
+		if (PvPToggle.permissionHandler != null){
+			if (PvPToggle.permissionHandler.has(player, permissions)){
+				haspermissions = true;
+			}
+		}
+		if (player.isOp()){
+			haspermissions = true;
+		}	
+		return haspermissions;
+	}
+
+	public void setWorldValue(String targetworld, boolean newval) {
+		worldstatus.put(targetworld, newval);
+	}
+	
+	public boolean getWorldValue(String targetworld){
+		return worldstatus.get(targetworld);
 	}
 	
 }

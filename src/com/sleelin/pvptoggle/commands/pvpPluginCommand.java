@@ -29,118 +29,60 @@ public class pvpPluginCommand implements CommandExecutor {
 			sender.sendMessage("Usage: /pvp [on|off|status]");
 			return true;
 		}
-
-		if (args[0].equalsIgnoreCase("status")){
-			if (plugin.pvpEnabled(player)){
-				sender.sendMessage(ChatColor.GOLD + "PvP Status: on");
-			} else {
-				sender.sendMessage(ChatColor.GOLD + "PvP Status: off");
-			}
-			return true;
-		}
 		
 		if (args.length == 1){
-			boolean haspermissions = false;
-			if (PvPToggle.permissionHandler != null){
-				if (PvPToggle.permissionHandler.has(player, "pvptoggle.command")){
-					haspermissions = true;
+			
+			if (args[0].equalsIgnoreCase("status")){
+				if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.status")){					
+					if (plugin.pvpEnabled(player, player.getWorld().toString())){
+						sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().toString() + ": on");
+					} else {
+						sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().toString() + ": off");
+					}
+				} else {
+					player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 				}
-			}
-			if (player.isOp()){
-				haspermissions = true;
+				return true;
 			}
 			
-			if (haspermissions){
-				if ((args[0].equalsIgnoreCase("on"))||(args[0].equalsIgnoreCase("enable"))){
-					plugin.pvpEnable(player);
-					player.sendMessage(ChatColor.GOLD + "PvP Enabled!");
+			if (plugin.permissionsCheck(player, "pvptoggle.command.toggle")){
+				boolean newval = checkNewValue(args[0]);
+				if (newval){
+					plugin.pvpEnable(player, player.getWorld().toString());
+					player.sendMessage(ChatColor.GOLD + "PvP Enabled in " + player.getWorld().toString() + "!");
 					plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " enabled pvp");
-				} else if ((args[0].equalsIgnoreCase("off"))||(args[0].equalsIgnoreCase("disable"))){
-					plugin.pvpDisable(player);
-					player.sendMessage(ChatColor.GOLD + "PvP Disabled!");
+				} else if (!(newval)){
+					plugin.pvpDisable(player, player.getWorld().toString());
+					player.sendMessage(ChatColor.GOLD + "PvP Disabled in " + player.getWorld().toString() + "!");
 					plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " disabled pvp");
 				}
+				return true;
 			} else {
 				player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 			}
 		}
 		
-		if (args.length == 2){
-			boolean haspermissions = false;
-			if (PvPToggle.permissionHandler != null){
-				if (PvPToggle.permissionHandler.has(player, "pvptoggle.admin")){
-					haspermissions = true;
-				}
-			}
-			if (player.isOp()){
-				haspermissions = true;
-			}	
-			
-			
-			if (haspermissions){
-				String playername;
-				Player players[] = plugin.getServer().getOnlinePlayers();
-				
-				if (args[0].equalsIgnoreCase("*")){
-					boolean enable = false;
-					if ((args[1].equalsIgnoreCase("on"))||(args[1].equalsIgnoreCase("enable"))){
-						enable = true;
-					} else if ((args[1].equalsIgnoreCase("off"))||(args[1].equalsIgnoreCase("disable"))){
-						enable = false;
-					}
-					for (Player p : players){
-						if (enable){
-							plugin.pvpEnable(p);
-							p.sendMessage(ChatColor.GOLD + "PvP Enabled by " + player.getDisplayName() + "!");
-						} else {
-							plugin.pvpDisable(p);
-							p.sendMessage(ChatColor.GOLD + "PvP Disabled by " + player.getDisplayName() + "!");
-						}
-					}
-					if (enable){
-						sender.sendMessage("Successfully reset all players PvP to enabled!");
-					} else {
-						sender.sendMessage("Successfully reset all players PvP to disabled!");
-					}
-					return true;
-				}
-				
-				
-				List<Player> found = new ArrayList<Player>();
-				
-				for (Player search : players){
-					playername = search.getDisplayName().toLowerCase();
-					if (playername.contains(args[0].toLowerCase())){
-						found.add(search);
-					}
-				}
-				if (found.size() == 1){
-					Player target = found.get(0);
-					if ((args[1].equalsIgnoreCase("on"))||(args[1].equalsIgnoreCase("enable"))){
-						plugin.pvpEnable(target);
-						target.sendMessage(ChatColor.GOLD + "PvP Enabled by " + player.getDisplayName() + "!");
-						player.sendMessage(ChatColor.GOLD + "Successfully enabled PvP for player " + target.getDisplayName() + "!");
-					} else if ((args[1].equalsIgnoreCase("off"))||(args[1].equalsIgnoreCase("disable"))){
-						plugin.pvpDisable(target);
-						target.sendMessage(ChatColor.GOLD + "PvP Disabled by " + player.getDisplayName() + "!");
-						player.sendMessage(ChatColor.GOLD + "Successfully disabled PvP for player " + target.getDisplayName() + "!");
-					} else if (args[1].equalsIgnoreCase("status")){
-						if (plugin.pvpEnabled(target)){
-							sender.sendMessage(ChatColor.GOLD + target.getDisplayName() + " has PvP: on");
-						} else {
-							sender.sendMessage(ChatColor.GOLD + target.getDisplayName() + " has PvP: off");
-						}
-						return true;
-					}
-				} else if (found.size() > 1) {
-					StringBuilder targets = new StringBuilder();
-					for (Player p : found){
-						targets.append(p.getDisplayName());
-						targets.append(", ");
-					}
-					sender.sendMessage("Found " + found.size() + " online players matching that partial name: " + targets.toString().replaceAll("/, $/", ""));
+		if (args.length == 2){	
+			if (plugin.permissionsCheck(player, "pvptoggle.admin")){
+				if (args[0].equalsIgnoreCase("status")){
+					checkPlayerStatus(sender, args[0], player.getWorld().toString());
 				} else {
-					sender.sendMessage(ChatColor.RED + "Couldn't find a player matching that name!");
+					if (args[1].equalsIgnoreCase("*")){
+						toggleAcrossAllWorlds(sender, checkNewValue(args[0]));
+					} else {
+						toggleSpecificPlayer(sender, args[1], checkNewValue(args[0]), ((Player) sender).getWorld().toString());
+					}
+				}
+				return true;
+			} else {
+				player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+			}
+		}
+			
+		if (args.length == 3){
+			if (plugin.permissionsCheck(player, "pvptoggle.admin")){
+				if (args[1].equalsIgnoreCase("*")){
+					toggleSpecificWorld(sender, isWorld(args[2]), checkNewValue(args[0]));
 				}
 			} else {
 				player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
@@ -149,7 +91,147 @@ public class pvpPluginCommand implements CommandExecutor {
 		
 		return true;
 	}
+		
+	
+	private void checkPlayerStatus(CommandSender sender, String playername, String targetworld) {
+		if (targetworld != null){
+			List<Player> found = findPlayers(plugin.getServer().getOnlinePlayers(), playername);
+			
+			if (found.size() == 1){
+				Player target = found.get(0);
+				if (plugin.pvpEnabled(target, targetworld)){
+					sender.sendMessage(ChatColor.GOLD + target.getDisplayName() + " has PvP on in " + targetworld);
+				} else {
+					sender.sendMessage(ChatColor.GOLD + target.getDisplayName() + " has PvP off in " + targetworld);
+				}
+			} else if (found.size() > 1) {
+				StringBuilder targets = new StringBuilder();
+				for (Player p : found){
+					targets.append(p.getDisplayName());
+					targets.append(", ");
+				}
+				sender.sendMessage("Found " + found.size() + " online players matching that partial name: " + targets.toString().replaceAll("/, $/", ""));
+			} else {
+				sender.sendMessage(ChatColor.RED + "Couldn't find a player matching that name!");
+			}
+		} else {
+			sender.sendMessage(ChatColor.RED + "No world matching name \"" + targetworld + "\"");
+		}
+	}
 
+	public static boolean checkNewValue(String string){
+		boolean enable = false;
+		if ((string.equalsIgnoreCase("on"))||(string.equalsIgnoreCase("enable"))){
+			enable = true;
+		} else if ((string.equalsIgnoreCase("off"))||(string.equalsIgnoreCase("disable"))){
+			enable = false;
+		}
+		return enable;
+	}
+
+	private void toggleAcrossAllWorlds(CommandSender sender, boolean newval) {
+		Player players[] = plugin.getServer().getOnlinePlayers();
+
+		for (Player p : players){
+			for (String worldname : PvPToggle.worldnames){
+				if (newval){
+					plugin.pvpEnable(p, worldname);
+					p.sendMessage(ChatColor.GOLD + "PvP Enabled by " + ((Player) sender).getDisplayName() + "!");
+				} else {
+					plugin.pvpDisable(p, worldname);
+					p.sendMessage(ChatColor.GOLD + "PvP Disabled by " + ((Player) sender).getDisplayName() + "!");
+				}
+			}
+		}
+		
+		String message = null;
+		if (newval){
+			message = "Successfully reset all players PvP to enabled across all worlds!";
+		} else {
+			message = "Successfully reset all players PvP to disabled across all worlds!";
+		}
+		sender.sendMessage(message);
+	}
+	
+	public static String isWorld(String targetworld){
+		String output = null;
+		for (String worldname : PvPToggle.worldnames){
+			if (worldname.contains(targetworld.toLowerCase())){
+				output = worldname;
+				break;
+			}
+		}
+		if (output == null){
+			
+		}
+		return output;
+	}
 	
 	
+	private void toggleSpecificWorld(CommandSender sender, String targetworld, boolean newval){
+		
+		Player players[] = plugin.getServer().getOnlinePlayers();
+		
+		if (targetworld != null){		
+			for (Player p : players){
+				if (newval){
+					plugin.pvpEnable(p, targetworld);
+					if (p.getWorld().toString().equals(targetworld)){
+						p.sendMessage(ChatColor.GOLD + "PvP Enabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
+					}
+				} else {
+					plugin.pvpDisable(p, targetworld);
+					if (p.getWorld().toString().equals(targetworld)){
+						p.sendMessage(ChatColor.GOLD + "PvP Disabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
+					}
+				}	
+			}
+			String message;
+			if (newval){
+				message = "Successfully reset all players PvP to enabled in world " + targetworld;
+			} else {
+				message = "Successfully reset all players PvP to disabled in world " + targetworld;
+			}
+			sender.sendMessage(message);
+		} else {
+			sender.sendMessage(ChatColor.RED + "No world matching name \"" + targetworld + "\"");
+		}
+		
+	}
+	
+	private List<Player> findPlayers(Player players[], String playername){
+		List<Player> found = new ArrayList<Player>();
+		
+		for (Player search : players){
+			if (search.getDisplayName().toLowerCase().contains(playername.toLowerCase())){
+				found.add(search);
+			}
+		}
+		return found;
+	}
+	
+	private void toggleSpecificPlayer(CommandSender sender, String playername, boolean newval, String targetworld){
+		List<Player> found = findPlayers(plugin.getServer().getOnlinePlayers(), playername);
+		if (found.size() == 1){
+			Player target = found.get(0);
+			if (newval){
+				plugin.pvpEnable(target, targetworld);
+				target.sendMessage(ChatColor.GOLD + "PvP Enabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
+				sender.sendMessage(ChatColor.GOLD + "Successfully enabled PvP for player " + target.getDisplayName() + "!");
+			} else {
+				plugin.pvpDisable(target, targetworld);
+				target.sendMessage(ChatColor.GOLD + "PvP Disabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
+				sender.sendMessage(ChatColor.GOLD + "Successfully disabled PvP for player " + target.getDisplayName() + "!");
+			}
+		} else if (found.size() > 1) {
+			StringBuilder targets = new StringBuilder();
+			for (Player p : found){
+				targets.append(p.getDisplayName());
+				targets.append(", ");
+			}
+			sender.sendMessage("Found " + found.size() + " online players matching that partial name: " + targets.toString().replaceAll("/, $/", ""));
+		} else {
+			sender.sendMessage(ChatColor.RED + "Couldn't find a player matching that name!");
+		}
+	}
 }
