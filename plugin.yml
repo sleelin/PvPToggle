@@ -1,6 +1,6 @@
 name: PvPToggle
 main: com.sleelin.pvptoggle.PvPToggle
-version: 0.1
+version: 0.2
 commands:
     pvp:
         description: Toggles whether player can take damage from another player

@@ -1,2 +1,25 @@
 PvPToggle by sleelin.
 Allows PvP enabling or disabling on a per-user basis, or allows for global PvP to be enabled or disabled.
+Supports multiple worlds when defined in the config file.
+
+Supports Permission plugin. Permissions nodes:
+
+- pvptoggle.use
+	Enable usage of the pvptoggle plugin (i.e. status check when hit)
+- pvptoggle.command.toggle
+	/pvp [on|off]: individual pvp toggling
+- pvptoggle.command.status
+	/pvp status: check individual pvp status
+- pvptoggle.admin
+	/pvp [on|off|status] [player]: modify or check status of specific player in sender's current world
+	/pvp [on|off|status] [player] [world]: modify or check status of specific player in specified world
+	/pvp [on|off] *: modify status of all players in sender's current world
+	/pvp [on|off] * [world]: modify status of all players in specified world
+	
+- pvptoggle.gcommand.status
+	/gpvp status: checks global pvp status
+	/gpvp status [world]: checks pvp status in specified world
+- pvptoggle.gadmin
+	/gpvp [on|off]: toggles global pvp status
+	/gpvp [on|off] [world]: toggles pvp status in specified world
+ 

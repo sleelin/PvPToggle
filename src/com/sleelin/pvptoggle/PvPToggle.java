@@ -52,6 +52,8 @@ public class PvPToggle extends JavaPlugin {
 				FileOutputStream out = new FileOutputStream(configfile);
 				prop.put("defaultDisabled", "false");
 				prop.put("globalDisabled", "false");
+				prop.put("worlds", "world");
+				prop.put("worldPvPStatus", "true");
 				prop.store(out, "PvPToggle Config File");
 			} catch (IOException ex){
 				ex.printStackTrace();
@@ -109,7 +111,7 @@ public class PvPToggle extends JavaPlugin {
 		defaultdisabled = Boolean.parseBoolean(prop.getProperty("defaultDisabled", "false"));
 		globaldisabled = Boolean.parseBoolean(prop.getProperty("globalDisabled", "false"));
 		worldnames = prop.getProperty("worlds", "world").toLowerCase().split(",\\s*");
-		String loadworldstatus[] = prop.getProperty("worldstatus", "true").toLowerCase().split(",\\s*");
+		String loadworldstatus[] = prop.getProperty("worldPvPStatus", "true").toLowerCase().split(",\\s*");
 
 		for (int i = 0; i < worldnames.length; i++){
 			HashMap<Player, Boolean> players = new HashMap<Player, Boolean>();
@@ -123,7 +125,14 @@ public class PvPToggle extends JavaPlugin {
 	}
 	
 	private int getWorldIndex(String world) {
-		return 0;
+		int i = 0;
+		for (String worldname : PvPToggle.worldnames){
+			if (worldname.equalsIgnoreCase(world)){
+				break;
+			}
+			i++;
+		}
+		return i;
 	}
 	
 	public void pvpEnable(Player player, String world) {
@@ -180,6 +189,14 @@ public class PvPToggle extends JavaPlugin {
 	
 	public boolean getWorldValue(String targetworld){
 		return worldstatus.get(targetworld);
+	}
+
+	public void gpvpToggle(boolean newval) {
+		if (newval == false){
+			globaldisabled = true; 
+		} else {
+			globaldisabled = false;
+		}
 	}
 	
 }

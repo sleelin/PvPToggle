@@ -16,47 +16,50 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
-		if (args.length == 1){
-			if (args[0].equalsIgnoreCase("status")){
-				if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status")){
-					if (plugin.gpvpEnabled()){
-						sender.sendMessage(ChatColor.GOLD + "Global PvP Status: on");
+		if (pvpPluginCommand.checkArgs(args[0])){
+			if (args.length == 1){
+				if (args[0].equalsIgnoreCase("status")){
+					if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status")){
+						if (plugin.gpvpEnabled()){
+							sender.sendMessage(ChatColor.GOLD + "Global PvP Status: on");
+						} else {
+							sender.sendMessage(ChatColor.GOLD + "Global PvP Status: off");
+						}
 					} else {
-						sender.sendMessage(ChatColor.GOLD + "Global PvP Status: off");
+						sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 					}
+					return true;
+				}
+				
+				if (plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin")){
+					gtoggleGlobal(sender, pvpPluginCommand.checkNewValue(args[0]));			
 				} else {
 					sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 				}
 				return true;
 			}
 			
-			if (plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin")){
-				gtoggleGlobal(sender, pvpPluginCommand.checkNewValue(args[0]));			
-			} else {
-				sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
-			}
-			return true;
-		}
-		
-		if (args.length == 2){
-			if (args[0].equalsIgnoreCase("status")){
-				if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status")){
-					printWorldStatus(sender, pvpPluginCommand.isWorld(args[1]));
+			if (args.length == 2){
+				if (args[0].equalsIgnoreCase("status")){
+					if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status")){
+						printWorldStatus(sender, pvpPluginCommand.isWorld(args[1]));
+					} else {
+						sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+					}
+					return true;
+				}
+				
+				if (plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin")){
+					gtoggleWorld(sender, pvpPluginCommand.isWorld(args[1]), pvpPluginCommand.checkNewValue(args[0]));			
 				} else {
 					sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 				}
 				return true;
 			}
 			
-			if (plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin")){
-				gtoggleWorld(sender, pvpPluginCommand.isWorld(args[1]), pvpPluginCommand.checkNewValue(args[0]));			
-			} else {
-				sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
-			}
-			return true;
+		} else {
+			sendUsage(sender);
 		}
-		
-		sendUsage(sender);
 		return true;
 	}
 
@@ -69,12 +72,16 @@ public class globalpvpPluginCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.GOLD + "PvP Status in world " + worldname + ": off");
 			}
 		} else {
-			sender.sendMessage(ChatColor.RED + "No world matching name \"" + worldname + "\"");
+			sender.sendMessage(ChatColor.RED + "No world matching that name!");
 		}
 	}
 
 	private void sendUsage(CommandSender sender) {
-		sender.sendMessage("Usage: /gpvp [on|off|status] [world]");		
+		if (plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin")){
+			sender.sendMessage("Usage: /gpvp [on|off|status] [world]");
+		} else if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status")){
+			sender.sendMessage("Usage: /gpvp [status] [world]");
+		}
 	}
 	
 	private void gtoggleGlobal(CommandSender sender, boolean newval) {
@@ -91,10 +98,14 @@ public class globalpvpPluginCommand implements CommandExecutor {
 			for (String worldname : PvPToggle.worldnames){
 				if (newval){
 					plugin.pvpEnable(p, worldname);
-					p.sendMessage(ChatColor.GOLD + "Global PvP enabled by " + displayname + "!");
+					if (worldname.equalsIgnoreCase(p.getWorld().getName())){
+						p.sendMessage(ChatColor.GOLD + "Global PvP enabled by " + displayname + "!");
+					}
 				} else {
 					plugin.pvpDisable(p, worldname);
-					p.sendMessage(ChatColor.GOLD + "Global PvP disabled by " + displayname + "!");
+					if (worldname.equalsIgnoreCase(p.getWorld().getName())){
+						p.sendMessage(ChatColor.GOLD + "Global PvP disabled by " + displayname + "!");
+					}
 				}
 			}
 			
@@ -102,7 +113,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 		for (String worldname : PvPToggle.worldnames){
 			plugin.setWorldValue(worldname, newval);
 		}
-		
+		plugin.gpvpToggle(newval);
 		String message = null;
 		if (newval){
 			message = "Successfully enabled global PvP!";
@@ -120,10 +131,14 @@ public class globalpvpPluginCommand implements CommandExecutor {
 			for (Player p : players){
 				if (newval){
 					plugin.pvpEnable(p, targetworld);
-					p.sendMessage(ChatColor.GOLD + "World-wide PvP enabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
+					if (targetworld.equalsIgnoreCase(p.getWorld().getName())){
+						p.sendMessage(ChatColor.GOLD + "World-wide PvP enabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
+					}
 				} else {
 					plugin.pvpDisable(p, targetworld);
-					p.sendMessage(ChatColor.GOLD + "World-wide PvP disabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
+					if (targetworld.equalsIgnoreCase(p.getWorld().getName())){
+						p.sendMessage(ChatColor.GOLD + "World-wide PvP disabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
+					}
 				}	
 			}
 			plugin.setWorldValue(targetworld, newval);
@@ -131,11 +146,11 @@ public class globalpvpPluginCommand implements CommandExecutor {
 			if (newval){
 				message = "Successfully enabled world-wide PvP in " + targetworld;
 			} else {
-				message = "Successfully enabled world-wide PvP in " + targetworld;
+				message = "Successfully disabled world-wide PvP in " + targetworld;
 			}
 			sender.sendMessage(message);
 		} else {
-			sender.sendMessage(ChatColor.RED + "No world matching name \"" + targetworld + "\"");
+			sender.sendMessage(ChatColor.RED + "No world matching that name!");
 		}
 		
 	}

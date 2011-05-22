@@ -21,24 +21,21 @@ public class PvPToggleEntityListener extends EntityListener {
 				EntityDamageByEntityEvent edbye = (EntityDamageByEntityEvent) event;
 				if (edbye.getDamager() instanceof Player){
 					Player damager = (Player) edbye.getDamager();
-					boolean haspermissions = false;
 					
-					if (PvPToggle.permissionHandler != null){
-						if (PvPToggle.permissionHandler.has(player, "pvptoggle.use")){
-							haspermissions = true;
-						}						
-					} 
-					if (player.isOp()){
-						haspermissions = true;
-					}					
-					
-					if (haspermissions){
-						boolean isenabled = plugin.pvpEnabled(player, player.getWorld().toString());
+					if (plugin.permissionsCheck(player, "pvptoggle.use")){
+						boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
 						boolean genabled = plugin.gpvpEnabled();
-						if ((!isenabled)||(!genabled)){
+						boolean damagerenabled = plugin.pvpEnabled(damager, player.getWorld().getName());
+						if ((!targetenabled)||(!damagerenabled)||(!genabled)||(!(plugin.getWorldValue(player.getWorld().getName())))){
 							String message = null;
-							if (!isenabled){
+							if (!targetenabled){
 								message = ChatColor.RED + player.getDisplayName() + " has PvP disabled!";
+							}
+							if (!damagerenabled){
+								message = ChatColor.RED + "You have PvP disabled!";
+							}
+							if (!(plugin.getWorldValue(player.getWorld().getName()))){
+								message = ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!";
 							}
 							if (!genabled){
 								message = ChatColor.RED + "Global PvP is disabled!";
