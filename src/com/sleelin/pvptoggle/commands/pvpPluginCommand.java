@@ -172,10 +172,14 @@ public class pvpPluginCommand implements CommandExecutor {
 			for (String worldname : PvPToggle.worldnames){
 				if (newval){
 					plugin.pvpEnable(p, worldname);
-					p.sendMessage(ChatColor.GOLD + "PvP Enabled by " + ((Player) sender).getDisplayName() + "!");
+					if (p.getWorld().getName()==worldname){
+						p.sendMessage(ChatColor.GOLD + "PvP Enabled by " + ((Player) sender).getDisplayName() + "!");
+					}
 				} else {
 					plugin.pvpDisable(p, worldname);
-					p.sendMessage(ChatColor.GOLD + "PvP Disabled by " + ((Player) sender).getDisplayName() + "!");
+					if (p.getWorld().getName()==worldname){
+						p.sendMessage(ChatColor.GOLD + "PvP Disabled by " + ((Player) sender).getDisplayName() + "!");
+					}
 				}
 			}
 		}
