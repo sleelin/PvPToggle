@@ -82,10 +82,12 @@ public class PvPToggle extends JavaPlugin {
 	
 	private void registerOnlinePlayers(Player[] onlinePlayers) {
 		for (Player player : onlinePlayers){
-			if (PvPToggle.defaultdisabled){
-				this.pvpDisable(player, player.getWorld().toString());
-			} else {
-				this.pvpEnable(player, player.getWorld().toString());
+			for (String worldname : PvPToggle.worldnames){
+				if ((PvPToggle.defaultdisabled)||(PvPToggle.globaldisabled)||(!(getWorldValue(worldname)))){
+					this.pvpDisable(player, worldname);
+				} else {
+					this.pvpEnable(player, worldname);
+				}
 			}
 		}
 		

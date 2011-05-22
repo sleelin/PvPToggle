@@ -82,10 +82,14 @@ public class pvpPluginCommand implements CommandExecutor {
 					
 				if (args.length == 3){
 					if (plugin.permissionsCheck(player, "pvptoggle.admin")){
-						if (args[1].equalsIgnoreCase("*")){
-							toggleSpecificWorld(sender, isWorld(args[2]), checkNewValue(args[0]));
+						if (args[0].equalsIgnoreCase("status")){
+							checkPlayerStatus(sender, args[0], isWorld(args[2]));
 						} else {
-							toggleSpecificPlayer(sender, args[1], checkNewValue(args[0]), isWorld(args[2]));
+							if (args[1].equalsIgnoreCase("*")){
+								toggleSpecificWorld(sender, isWorld(args[2]), checkNewValue(args[0]));
+							} else {
+								toggleSpecificPlayer(sender, args[1], checkNewValue(args[0]), isWorld(args[2]));
+							}
 						}
 					} else {
 						player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
