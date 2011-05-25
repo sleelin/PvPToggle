@@ -22,4 +22,20 @@ Supports Permission plugin. Permissions nodes:
 - pvptoggle.gadmin
 	/gpvp [on|off]: toggles global pvp status
 	/gpvp [on|off] [world]: toggles pvp status in specified world
+
+Changelog:
+v0.2.5:
+- Updated multiworld support to use bukkit-dependent world detection (fixes issues with misconfiguration)
+- Swapped to YAML config file format for ease of use 
+v0.2.3:
+- Added persistence across player sessions
+- Fixed bug in /pvp with no arguments
+v0.2.1:
+- Fixed severe errors on reload (to do with initialising players)
+- Fixed /pvp status [player] [world] - it actually works now
+v0.2.0:
+- Added multiworld support
+- Tidied up command handling
+v0.1.0:
+- Initial release
  

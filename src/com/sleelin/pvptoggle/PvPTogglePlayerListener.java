@@ -16,12 +16,14 @@ public class PvPTogglePlayerListener extends PlayerListener {
 	
 	public void onPlayerJoin(PlayerJoinEvent event){
 		Player player = (Player) event.getPlayer();
-		for (String worldname : PvPToggle.worldnames){
-			if ((PvPToggle.defaultdisabled)||(PvPToggle.globaldisabled)||(!(plugin.getWorldValue(worldname)))){
-				plugin.pvpDisable(player, worldname);
-			} else {
-				plugin.pvpEnable(player, worldname);
-			}			
+		if (!plugin.alreadyLoaded(player)){
+			for (String worldname : PvPToggle.worldnames){
+				if (!PvPToggle.defaultenabled.get(worldname)){
+					plugin.pvpDisable(player, worldname);
+				} else {
+					plugin.pvpEnable(player, worldname);
+				}
+			}
 		}
 	}
 

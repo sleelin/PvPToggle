@@ -66,7 +66,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	private void printWorldStatus(CommandSender sender, String world) {
 		String worldname = pvpPluginCommand.isWorld(world);
 		if (worldname != null){
-			if (plugin.getWorldValue(worldname)){
+			if (PvPToggle.worldstatus.get(worldname)){
 				sender.sendMessage(ChatColor.GOLD + "PvP Status in world " + worldname + ": on");
 			} else {
 				sender.sendMessage(ChatColor.GOLD + "PvP Status in world " + worldname + ": off");
@@ -85,34 +85,6 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	}
 	
 	private void gtoggleGlobal(CommandSender sender, boolean newval) {
-		Player players[] = plugin.getServer().getOnlinePlayers();
-
-		String displayname = null;
-		if (!(sender instanceof Player)){
-			displayname = "Console User";
-		} else {
-			displayname = ((Player) sender).getDisplayName();
-		}
-		
-		for (Player p : players){
-			for (String worldname : PvPToggle.worldnames){
-				if (newval){
-					plugin.pvpEnable(p, worldname);
-					if (worldname.equalsIgnoreCase(p.getWorld().getName())){
-						p.sendMessage(ChatColor.GOLD + "Global PvP enabled by " + displayname + "!");
-					}
-				} else {
-					plugin.pvpDisable(p, worldname);
-					if (worldname.equalsIgnoreCase(p.getWorld().getName())){
-						p.sendMessage(ChatColor.GOLD + "Global PvP disabled by " + displayname + "!");
-					}
-				}
-			}
-			
-		}
-		for (String worldname : PvPToggle.worldnames){
-			plugin.setWorldValue(worldname, newval);
-		}
 		plugin.gpvpToggle(newval);
 		String message = null;
 		if (newval){
@@ -125,23 +97,8 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	
 	private void gtoggleWorld(CommandSender sender, String targetworld, boolean newval){
 		
-		Player players[] = plugin.getServer().getOnlinePlayers();
-		
 		if (targetworld != null){		
-			for (Player p : players){
-				if (newval){
-					plugin.pvpEnable(p, targetworld);
-					if (targetworld.equalsIgnoreCase(p.getWorld().getName())){
-						p.sendMessage(ChatColor.GOLD + "World-wide PvP enabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
-					}
-				} else {
-					plugin.pvpDisable(p, targetworld);
-					if (targetworld.equalsIgnoreCase(p.getWorld().getName())){
-						p.sendMessage(ChatColor.GOLD + "World-wide PvP disabled in world " + targetworld + " by " + ((Player) sender).getDisplayName() + "!");
-					}
-				}	
-			}
-			plugin.setWorldValue(targetworld, newval);
+			plugin.setWorldStatus(targetworld, newval);
 			String message;
 			if (newval){
 				message = "Successfully enabled world-wide PvP in " + targetworld;

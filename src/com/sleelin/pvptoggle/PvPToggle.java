@@ -1,19 +1,23 @@
 package com.sleelin.pvptoggle;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Properties;
+import java.util.List;
 import java.util.logging.Logger;
+
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.config.Configuration;
+
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 import com.sleelin.pvptoggle.commands.*;
@@ -27,46 +31,35 @@ import com.sleelin.pvptoggle.commands.*;
 
 public class PvPToggle extends JavaPlugin {
 	static String mainDirectory = "plugins/PvPToggle";
-	static Properties prop = new Properties();
-	static File configfile = new File (mainDirectory + File.separator + "config.conf");
-	public static boolean defaultdisabled;
+	static String fileName = "config.yml";
+	static File configfile = new File (mainDirectory + File.separator + fileName);
 	static boolean globaldisabled;
 		
 	public static PermissionHandler permissionHandler;
 	
 	private final PvPTogglePlayerListener playerListener = new PvPTogglePlayerListener(this);
 	private final PvPToggleEntityListener EntityListener = new PvPToggleEntityListener(this);
-	public final ArrayList<HashMap<Player, Boolean>> worlds = new ArrayList<HashMap<Player, Boolean>>();
-	public final static HashMap<String, Boolean> worldstatus = new HashMap<String, Boolean>();
+	private final ArrayList<HashMap<Player, Boolean>> worlds = new ArrayList<HashMap<Player, Boolean>>();
 	public Logger log = Logger.getLogger("Minecraft");
-	public static String worldnames[];
+	public static List<String> worldnames = new ArrayList<String>();
+	public static HashMap<String, Boolean> defaultenabled = new HashMap<String, Boolean>();
+	public static HashMap<String, Boolean> worldstatus = new HashMap<String, Boolean>();
 	
 	public void onEnable(){
 		PluginDescriptionFile pdfFile = this.getDescription();
-		System.out.println("[" + pdfFile.getName() + "] Loading...");
+		log.info("[" + pdfFile.getName() + "] Loading...");
 		new File(mainDirectory).mkdir();
 		if (!configfile.exists()){
-			try {
-				log.info("[" + pdfFile.getName() + "] Config file not found, autogenerating...");
-				configfile.createNewFile();
-				FileOutputStream out = new FileOutputStream(configfile);
-				prop.put("defaultDisabled", "false");
-				prop.put("globalDisabled", "false");
-				prop.put("worlds", "world");
-				prop.put("worldPvPStatus", "true");
-				prop.store(out, "PvPToggle Config File");
-			} catch (IOException ex){
-				ex.printStackTrace();
-			}
-		} else {
-			try {
-				loadProcedure();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			createNewConfigFile();
+		} 
+		try {
+			loadProcedure();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		setupPermissions();
 		
+		getCommand("tpvp").setExecutor(new pvpPluginCommand(this));
 		getCommand("pvp").setExecutor(new pvpPluginCommand(this));
 		getCommand("gpvp").setExecutor(new globalpvpPluginCommand(this));
 		
@@ -80,10 +73,33 @@ public class PvPToggle extends JavaPlugin {
 		System.out.println("["+ pdfFile.getName() + "] Enabled!");
 	}
 	
+	private void createNewConfigFile(){
+		PluginDescriptionFile pdfFile = this.getDescription();
+		try {
+			log.info("[" + pdfFile.getName() + "] Config file not found, autogenerating...");
+			FileWriter fstream = new FileWriter(mainDirectory+File.separator+fileName);
+			BufferedWriter out = new BufferedWriter(fstream);
+			configfile.createNewFile();
+			
+			out.write("globalDiabled: false\n");
+							
+			out.write("worlds:\n");
+			for (World world : this.getServer().getWorlds()){
+				log.info("[" +pdfFile.getName() + "] found world " + world.getName().toString());
+				out.write("    "+world.getName().toString()+":\n");
+				out.write("        logindefault: true\n");
+				out.write("        pvpenabled: true\n");
+			}
+			out.close();
+		} catch (IOException ex){
+			ex.printStackTrace();
+		}
+	}
+	
 	private void registerOnlinePlayers(Player[] onlinePlayers) {
 		for (Player player : onlinePlayers){
 			for (String worldname : PvPToggle.worldnames){
-				if ((PvPToggle.defaultdisabled)||(PvPToggle.globaldisabled)||(!(getWorldValue(worldname)))){
+				if (defaultenabled.get(worldname)){
 					this.pvpDisable(player, worldname);
 				} else {
 					this.pvpEnable(player, worldname);
@@ -108,18 +124,18 @@ public class PvPToggle extends JavaPlugin {
 	}
 	
 	public void loadProcedure() throws IOException {
-		FileInputStream in = new FileInputStream(configfile);
-		prop.load(in);
-		defaultdisabled = Boolean.parseBoolean(prop.getProperty("defaultDisabled", "false"));
-		globaldisabled = Boolean.parseBoolean(prop.getProperty("globalDisabled", "false"));
-		worldnames = prop.getProperty("worlds", "world").toLowerCase().split(",\\s*");
-		String loadworldstatus[] = prop.getProperty("worldPvPStatus", "true").toLowerCase().split(",\\s*");
-
-		for (int i = 0; i < worldnames.length; i++){
+		Configuration config = new Configuration(configfile);
+		config.load();
+		globaldisabled = config.getBoolean("globalDisabled", false);
+		List<World> tmpworldnames = this.getServer().getWorlds();
+		for (World world : tmpworldnames){
+			worldnames.add(world.getName());
+			worldstatus.put(world.getName(), config.getBoolean("worlds."+world.getName()+".pvpenabled",true));
+			defaultenabled.put(world.getName(), config.getBoolean("worlds."+world.getName()+".logindefault",true));
 			HashMap<Player, Boolean> players = new HashMap<Player, Boolean>();
 			worlds.add(players);
-			worldstatus.put(worldnames[i], Boolean.parseBoolean(loadworldstatus[i]));
 		}
+
 	}
 
 	public void onDisable(){
@@ -155,6 +171,16 @@ public class PvPToggle extends JavaPlugin {
 		HashMap<Player, Boolean> players = worlds.get(getWorldIndex(world));
 		return players.get(player);
 	}
+	
+	public boolean alreadyLoaded(Player player){
+		for (String worldname : worldnames){
+			HashMap<Player, Boolean> players = worlds.get(getWorldIndex(worldname));
+			if (players.containsKey(player)){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public boolean gpvpEnabled() {
 		if (globaldisabled == false){
@@ -162,14 +188,6 @@ public class PvPToggle extends JavaPlugin {
 		} else {
 			return false;
 		}
-	}
-
-	public void gpvpEnable() {
-		globaldisabled = false;
-	}
-
-	public void gpvpDisable() {
-		globaldisabled = true;
 	}
 	
 	public boolean permissionsCheck(Player player, String permissions){
@@ -185,12 +203,9 @@ public class PvPToggle extends JavaPlugin {
 		return haspermissions;
 	}
 
-	public void setWorldValue(String targetworld, boolean newval) {
+	public void setWorldStatus(String targetworld, boolean newval) {
 		worldstatus.put(targetworld, newval);
-	}
-	
-	public boolean getWorldValue(String targetworld){
-		return worldstatus.get(targetworld);
+		defaultenabled.put(targetworld, newval);
 	}
 
 	public void gpvpToggle(boolean newval) {

@@ -23,80 +23,75 @@ public class pvpPluginCommand implements CommandExecutor {
 			return true;
 		}
 
+		if (args.length == 0){
+			sendUsage(sender);
+			return true;
+		}
+		
 		if (checkArgs(args[0])){
 			Player player = (Player) sender;
-			
-			if (args.length == 0){
-				sendUsage(sender);
-				return true;
-			}
-			if (checkArgs(args[0])){
-				if (args.length == 1){
-					
-					if (args[0].equalsIgnoreCase("status")){
-						if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.status")){					
-							if (plugin.pvpEnabled(player, player.getWorld().getName())){
-								sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().getName() + ": on");
-							} else {
-								sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().getName() + ": off");
-							}
+			if (args.length == 1){				
+				if (args[0].equalsIgnoreCase("status")){
+					if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.status")){					
+						if (plugin.pvpEnabled(player, player.getWorld().getName())){
+							sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().getName() + ": on");
 						} else {
-							player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+							sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().getName() + ": off");
 						}
-						return true;
-					}
-					
-					if (plugin.permissionsCheck(player, "pvptoggle.command.toggle")){
-						boolean newval = checkNewValue(args[0]);
-						if (newval){
-							plugin.pvpEnable(player, player.getWorld().getName());
-							player.sendMessage(ChatColor.GOLD + "PvP Enabled in " + player.getWorld().getName() + "!");
-							plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " enabled pvp");
-						} else if (!(newval)){
-							plugin.pvpDisable(player, player.getWorld().getName());
-							player.sendMessage(ChatColor.GOLD + "PvP Disabled in " + player.getWorld().getName() + "!");
-							plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " disabled pvp");
-						}
-						return true;
 					} else {
 						player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 					}
+					return true;
 				}
 				
-				if (args.length == 2){	
-					if (plugin.permissionsCheck(player, "pvptoggle.admin")){
-						if (args[0].equalsIgnoreCase("status")){
-							checkPlayerStatus(sender, args[0], player.getWorld().getName());
-						} else {
-							if (args[1].equalsIgnoreCase("*")){
-								toggleAcrossAllWorlds(sender, checkNewValue(args[0]));
-							} else {
-								toggleSpecificPlayer(sender, args[1], checkNewValue(args[0]), ((Player) sender).getWorld().getName());
-							}
-						}
-						return true;
-					} else {
-						player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+				if (plugin.permissionsCheck(player, "pvptoggle.command.toggle")){
+					boolean newval = checkNewValue(args[0]);
+					if (newval){
+						plugin.pvpEnable(player, player.getWorld().getName());
+						player.sendMessage(ChatColor.GOLD + "PvP Enabled in " + player.getWorld().getName() + "!");
+						plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " enabled pvp");
+					} else if (!(newval)){
+						plugin.pvpDisable(player, player.getWorld().getName());
+						player.sendMessage(ChatColor.GOLD + "PvP Disabled in " + player.getWorld().getName() + "!");
+						plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " disabled pvp");
 					}
+					return true;
+				} else {
+					player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 				}
-					
-				if (args.length == 3){
-					if (plugin.permissionsCheck(player, "pvptoggle.admin")){
-						if (args[0].equalsIgnoreCase("status")){
-							checkPlayerStatus(sender, args[0], isWorld(args[2]));
-						} else {
-							if (args[1].equalsIgnoreCase("*")){
-								toggleSpecificWorld(sender, isWorld(args[2]), checkNewValue(args[0]));
-							} else {
-								toggleSpecificPlayer(sender, args[1], checkNewValue(args[0]), isWorld(args[2]));
-							}
-						}
+			}
+			
+			if (args.length == 2){	
+				if (plugin.permissionsCheck(player, "pvptoggle.admin")){
+					if (args[0].equalsIgnoreCase("status")){
+						checkPlayerStatus(sender, args[0], player.getWorld().getName());
 					} else {
-						player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+						if (args[1].equalsIgnoreCase("*")){
+							toggleAcrossAllWorlds(sender, checkNewValue(args[0]));
+						} else {
+							toggleSpecificPlayer(sender, args[1], checkNewValue(args[0]), ((Player) sender).getWorld().getName());
+						}
 					}
+					return true;
+				} else {
+					player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 				}
-			} else {
-				sendUsage(sender);
+			}
+				
+			if (args.length == 3){
+				if (plugin.permissionsCheck(player, "pvptoggle.admin")){
+					if (args[0].equalsIgnoreCase("status")){
+						checkPlayerStatus(sender, args[0], isWorld(args[2]));
+					} else {
+						if (args[1].equalsIgnoreCase("*")){
+							toggleSpecificWorld(sender, isWorld(args[2]), checkNewValue(args[0]));
+						} else {
+							toggleSpecificPlayer(sender, args[1], checkNewValue(args[0]), isWorld(args[2]));
+						}
+					}
+				} else {
+					player.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+				}
 			}
 		} else {
 			sendUsage(sender);

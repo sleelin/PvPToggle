@@ -26,7 +26,7 @@ public class PvPToggleEntityListener extends EntityListener {
 						boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
 						boolean genabled = plugin.gpvpEnabled();
 						boolean damagerenabled = plugin.pvpEnabled(damager, player.getWorld().getName());
-						if ((!targetenabled)||(!damagerenabled)||(!genabled)||(!(plugin.getWorldValue(player.getWorld().getName())))){
+						if ((!targetenabled)||(!damagerenabled)||(!genabled)||(!(PvPToggle.worldstatus.get(player.getWorld().getName())))){
 							String message = null;
 							if (!targetenabled){
 								message = ChatColor.RED + player.getDisplayName() + " has PvP disabled!";
@@ -34,7 +34,7 @@ public class PvPToggleEntityListener extends EntityListener {
 							if (!damagerenabled){
 								message = ChatColor.RED + "You have PvP disabled!";
 							}
-							if (!(plugin.getWorldValue(player.getWorld().getName()))){
+							if (!(PvPToggle.worldstatus.get(player.getWorld().getName()))){
 								message = ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!";
 							}
 							if (!genabled){
