@@ -24,6 +24,9 @@ Supports Permission plugin. Permissions nodes:
 	/gpvp [on|off] [world]: toggles pvp status in specified world
 
 Changelog:
+v0.3.0:
+- Added option for cooldown between last conflict and disabling PvP
+- Added console support for toggling PvP status of specific players, or all players in a specific world, or across all worlds
 v0.2.5:
 - Updated multiworld support to use bukkit-dependent world detection (fixes issues with misconfiguration)
 - Swapped to YAML config file format for ease of use 

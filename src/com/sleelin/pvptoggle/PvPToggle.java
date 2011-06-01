@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -32,18 +34,21 @@ import com.sleelin.pvptoggle.commands.*;
 public class PvPToggle extends JavaPlugin {
 	static String mainDirectory = "plugins/PvPToggle";
 	static String fileName = "config.yml";
-	static File configfile = new File (mainDirectory + File.separator + fileName);
+	public static File configfile = new File (mainDirectory + File.separator + fileName);
 	static boolean globaldisabled;
+	public static int cooldown = 0;
 		
 	public static PermissionHandler permissionHandler;
 	
 	private final PvPTogglePlayerListener playerListener = new PvPTogglePlayerListener(this);
-	private final PvPToggleEntityListener EntityListener = new PvPToggleEntityListener(this);
-	private final ArrayList<HashMap<Player, Boolean>> worlds = new ArrayList<HashMap<Player, Boolean>>();
+	private final PvPToggleEntityListener entityListener = new PvPToggleEntityListener(this);
+	private final PvPToggleWorldListener worldListener = new PvPToggleWorldListener(this);
+	final static ArrayList<HashMap<Player, Boolean>> worlds = new ArrayList<HashMap<Player, Boolean>>();
 	public Logger log = Logger.getLogger("Minecraft");
 	public static List<String> worldnames = new ArrayList<String>();
 	public static HashMap<String, Boolean> defaultenabled = new HashMap<String, Boolean>();
 	public static HashMap<String, Boolean> worldstatus = new HashMap<String, Boolean>();
+	public static HashMap<Player, Long> lasttoggle = new HashMap<Player, Long>();
 	
 	public void onEnable(){
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -66,7 +71,8 @@ public class PvPToggle extends JavaPlugin {
 		PluginManager pm = this.getServer().getPluginManager();
 		pm.registerEvent(Event.Type.PLAYER_CHAT, this.playerListener, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.PLAYER_JOIN, this.playerListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.EntityListener, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.WORLD_LOAD, this.worldListener, Event.Priority.High, this);
 		
 		registerOnlinePlayers(this.getServer().getOnlinePlayers());
 		
@@ -82,7 +88,7 @@ public class PvPToggle extends JavaPlugin {
 			configfile.createNewFile();
 			
 			out.write("globalDiabled: false\n");
-							
+			out.write("cooldown: 0\n");							
 			out.write("worlds:\n");
 			for (World world : this.getServer().getWorlds()){
 				log.info("[" +pdfFile.getName() + "] found world " + world.getName().toString());
@@ -97,6 +103,7 @@ public class PvPToggle extends JavaPlugin {
 	}
 	
 	private void registerOnlinePlayers(Player[] onlinePlayers) {
+		Calendar cal = new GregorianCalendar();
 		for (Player player : onlinePlayers){
 			for (String worldname : PvPToggle.worldnames){
 				if (defaultenabled.get(worldname)){
@@ -105,6 +112,7 @@ public class PvPToggle extends JavaPlugin {
 					this.pvpEnable(player, worldname);
 				}
 			}
+			lasttoggle.put(player, cal.getTime().getTime()-(1000*cooldown));
 		}
 		
 	}
@@ -125,10 +133,13 @@ public class PvPToggle extends JavaPlugin {
 	
 	public void loadProcedure() throws IOException {
 		Configuration config = new Configuration(configfile);
+		PluginDescriptionFile pdfFile = this.getDescription();
 		config.load();
 		globaldisabled = config.getBoolean("globalDisabled", false);
+		cooldown = config.getInt("cooldown", 0);
 		List<World> tmpworldnames = this.getServer().getWorlds();
 		for (World world : tmpworldnames){
+			log.info("[" +pdfFile.getName() + "] found and loaded world " + world.getName().toString());
 			worldnames.add(world.getName());
 			worldstatus.put(world.getName(), config.getBoolean("worlds."+world.getName()+".pvpenabled",true));
 			defaultenabled.put(world.getName(), config.getBoolean("worlds."+world.getName()+".logindefault",true));

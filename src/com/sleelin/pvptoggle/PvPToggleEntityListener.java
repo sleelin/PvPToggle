@@ -1,5 +1,7 @@
 package com.sleelin.pvptoggle;
 
+import java.util.GregorianCalendar;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -42,6 +44,9 @@ public class PvPToggleEntityListener extends EntityListener {
 							}
 							damager.sendMessage(message);
 							event.setCancelled(true);
+						} else {
+							PvPToggle.lasttoggle.put(damager, new GregorianCalendar().getTime().getTime());
+							PvPToggle.lasttoggle.put(player, new GregorianCalendar().getTime().getTime());
 						}
 					}
 				}

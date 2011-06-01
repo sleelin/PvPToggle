@@ -1,5 +1,7 @@
 package com.sleelin.pvptoggle;
 
+import java.util.GregorianCalendar;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerListener;
@@ -24,6 +26,7 @@ public class PvPTogglePlayerListener extends PlayerListener {
 					plugin.pvpEnable(player, worldname);
 				}
 			}
+			PvPToggle.lasttoggle.put(player, new GregorianCalendar().getTime().getTime()-(1000*PvPToggle.cooldown));
 		}
 	}
 
