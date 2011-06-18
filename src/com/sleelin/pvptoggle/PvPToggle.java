@@ -22,7 +22,8 @@ import org.bukkit.util.config.Configuration;
 
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
-import com.sleelin.pvptoggle.commands.*;
+import com.sleelin.pvptoggle.commands.globalpvpPluginCommand;
+import com.sleelin.pvptoggle.commands.pvpPluginCommand;
 
 /**
  * PvPToggle
@@ -49,6 +50,7 @@ public class PvPToggle extends JavaPlugin {
 	public static HashMap<String, Boolean> defaultenabled = new HashMap<String, Boolean>();
 	public static HashMap<String, Boolean> worldstatus = new HashMap<String, Boolean>();
 	public static HashMap<Player, Long> lasttoggle = new HashMap<Player, Long>();
+	public static boolean citizensEnabled = false;
 	
 	public void onEnable(){
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -63,6 +65,7 @@ public class PvPToggle extends JavaPlugin {
 			e.printStackTrace();
 		}
 		setupPermissions();
+		checkCitizens();
 		
 		getCommand("tpvp").setExecutor(new pvpPluginCommand(this));
 		getCommand("pvp").setExecutor(new pvpPluginCommand(this));
@@ -130,6 +133,16 @@ public class PvPToggle extends JavaPlugin {
 			}
 		}
 	}
+
+	private void checkCitizens(){
+		PluginDescriptionFile pdfFile = this.getDescription();
+		Plugin citizensPlugin = this.getServer().getPluginManager().getPlugin("Citizens");
+		
+		if (citizensPlugin != null){
+			PvPToggle.citizensEnabled = true;
+			log.info("[" + pdfFile.getName() + "] Permissions system detected!");
+		}
+	}	
 	
 	public void loadProcedure() throws IOException {
 		Configuration config = new Configuration(configfile);
