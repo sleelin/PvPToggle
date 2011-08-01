@@ -1,0 +1,18 @@
+name: PvPToggle
+main: com.sleelin.pvptoggle.PvPToggle
+version: 0.3.1
+author: Sleelin
+description: Allows players to decide whether or not they want PvP enabled
+commands:
+    pvp:
+        description: Toggles whether player can take damage from another player
+        uasge: |
+            /pvp [on|off|enable|disable]
+    tpvp:
+        description: Toggles whether player can take damage from another player
+        uasge: |
+            /pvpt [on|off|enable|disable]
+    gpvp:
+        description: Toggles global pvp status
+        uasge: |
+            /gpvp [on|off|enable|disable]
