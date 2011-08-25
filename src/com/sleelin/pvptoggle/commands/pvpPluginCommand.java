@@ -38,7 +38,7 @@ public class pvpPluginCommand implements CommandExecutor {
 				}
 				if (args[0].equalsIgnoreCase("status")){
 					if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.status")){					
-						if (plugin.pvpEnabled(player, player.getWorld().getName())){
+						if (plugin.pvpEnabled(player, player.getWorld().getName()) || (PvPToggle.forcepvpworld.get(player.getWorld().getName()))){
 							sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().getName() + ": on");
 						} else {
 							sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().getName() + ": off");
@@ -49,9 +49,11 @@ public class pvpPluginCommand implements CommandExecutor {
 					return true;
 				}
 				
-				if (plugin.permissionsCheck(player, "pvptoggle.command.toggle")){
+				if (plugin.permissionsCheck(player, "pvptoggle.command.toggle") && !(PvPToggle.forcepvpworld.get(player.getWorld().getName()))){
 					togglePlayer(player, checkNewValue(args[0]));
 					return true;
+				} else if (PvPToggle.forcepvpworld.get(player.getWorld().getName())) {
+					sender.sendMessage(ChatColor.RED + "PvP is forced in this world!");
 				} else {
 					sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 				}

@@ -1,6 +1,7 @@
 package com.sleelin.pvptoggle;
 
 import java.io.BufferedWriter;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,9 +20,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.config.Configuration;
+import org.bukkit.permissions.Permission;
 
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
 import com.sleelin.pvptoggle.commands.globalpvpPluginCommand;
 import com.sleelin.pvptoggle.commands.pvpPluginCommand;
 
@@ -39,7 +39,7 @@ public class PvPToggle extends JavaPlugin {
 	static boolean globaldisabled;
 	public static int cooldown = 0;
 		
-	public static PermissionHandler permissionHandler;
+	public static Permission permissionHandler;
 	
 	private final PvPTogglePlayerListener playerListener = new PvPTogglePlayerListener(this);
 	private final PvPToggleEntityListener entityListener = new PvPToggleEntityListener(this);
@@ -49,6 +49,7 @@ public class PvPToggle extends JavaPlugin {
 	public static List<String> worldnames = new ArrayList<String>();
 	public static HashMap<String, Boolean> defaultenabled = new HashMap<String, Boolean>();
 	public static HashMap<String, Boolean> worldstatus = new HashMap<String, Boolean>();
+	public static HashMap<String, Boolean> forcepvpworld = new HashMap<String, Boolean>();
 	public static HashMap<Player, Long> lasttoggle = new HashMap<Player, Long>();
 	public static boolean citizensEnabled = false;
 	
@@ -64,7 +65,7 @@ public class PvPToggle extends JavaPlugin {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		setupPermissions();
+		//setupPermissions();
 		checkCitizens();
 		
 		getCommand("tpvp").setExecutor(new pvpPluginCommand(this));
@@ -98,6 +99,7 @@ public class PvPToggle extends JavaPlugin {
 				out.write("    "+world.getName().toString()+":\n");
 				out.write("        logindefault: true\n");
 				out.write("        pvpenabled: true\n");
+				out.write("        forcepvp: false\n");
 			}
 			out.close();
 		} catch (IOException ex){
@@ -120,7 +122,7 @@ public class PvPToggle extends JavaPlugin {
 		
 	}
 
-	private void setupPermissions(){
+/*	private void setupPermissions(){
 		PluginDescriptionFile pdfFile = this.getDescription();
 		Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
 		
@@ -133,6 +135,7 @@ public class PvPToggle extends JavaPlugin {
 			}
 		}
 	}
+*/
 
 	private void checkCitizens(){
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -156,6 +159,7 @@ public class PvPToggle extends JavaPlugin {
 			worldnames.add(world.getName());
 			worldstatus.put(world.getName(), config.getBoolean("worlds."+world.getName()+".pvpenabled",true));
 			defaultenabled.put(world.getName(), config.getBoolean("worlds."+world.getName()+".logindefault",true));
+			forcepvpworld.put(world.getName(), config.getBoolean("worlds." +world.getName()+".forcepvp", true));
 			HashMap<Player, Boolean> players = new HashMap<Player, Boolean>();
 			worlds.add(players);
 		}
@@ -216,11 +220,12 @@ public class PvPToggle extends JavaPlugin {
 	
 	public boolean permissionsCheck(Player player, String permissions){
 		boolean haspermissions = false;
-		if (PvPToggle.permissionHandler != null){
-			if (PvPToggle.permissionHandler.has(player, permissions)){
-				haspermissions = true;
-			}
-		}
+		//if (PvPToggle.permissionHandler != null){
+			//if (PvPToggle.permissionHandler.has(player, permissions)){
+				//haspermissions = true;
+			//}
+		//}
+		haspermissions = player.hasPermission(permissions);
 		if (player.isOp()){
 			haspermissions = true;
 		}	

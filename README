@@ -1,4 +1,4 @@
-PvPToggle by sleelin.
+PvPToggle by sleelin & updated by AlexDGr8r
 Allows PvP enabling or disabling on a per-user basis, or allows for global PvP to be enabled or disabled.
 Supports multiple worlds when defined in the config file.
 
@@ -24,6 +24,9 @@ Supports Permission plugin. Permissions nodes:
 	/gpvp [on|off] [world]: toggles pvp status in specified world
 
 Changelog:
+v0.4.0:
+- Updated to new permissions
+- Added support for forced PvP in a specific world
 v0.3.0:
 - Added option for cooldown between last conflict and disabling PvP
 - Added console support for toggling PvP status of specific players, or all players in a specific world, or across all worlds
