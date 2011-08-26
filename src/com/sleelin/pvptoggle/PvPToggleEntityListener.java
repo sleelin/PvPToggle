@@ -8,6 +8,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityListener;
 
+import com.citizens.npcs.NPCManager;
+
 public class PvPToggleEntityListener extends EntityListener {
 	
 	public static PvPToggle plugin;
@@ -23,15 +25,14 @@ public class PvPToggleEntityListener extends EntityListener {
 				EntityDamageByEntityEvent edbye = (EntityDamageByEntityEvent) event;
 				if (edbye.getDamager() instanceof Player){
 					boolean proceed = true;
-//					if (PvPToggle.citizensEnabled){
-//						if (NPCManager.isNPC(player)){
-//							proceed = false;
-//						}
-//					}
+					if (PvPToggle.citizensEnabled){
+						if (NPCManager.isNPC(player)){
+							proceed = false;
+						}
+					}
 					if (proceed){
 						Player damager = (Player) edbye.getDamager();
-						if (!(PvPToggle.forcepvpworld.get(player.getWorld().getName())))
-						{
+						if (!(PvPToggle.forcepvpworld.get(player.getWorld().getName()))) {
 							if (plugin.permissionsCheck(player, "pvptoggle.use")){
 								boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
 								boolean genabled = plugin.gpvpEnabled();

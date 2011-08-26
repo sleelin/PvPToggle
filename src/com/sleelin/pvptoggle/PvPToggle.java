@@ -143,7 +143,7 @@ public class PvPToggle extends JavaPlugin {
 		
 		if (citizensPlugin != null){
 			PvPToggle.citizensEnabled = true;
-			log.info("[" + pdfFile.getName() + "] Permissions system detected!");
+			log.info("[" + pdfFile.getName() + "] Citizens Plugin detected!");
 		}
 	}	
 	
