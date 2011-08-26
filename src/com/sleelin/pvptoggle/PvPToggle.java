@@ -159,7 +159,7 @@ public class PvPToggle extends JavaPlugin {
 			worldnames.add(world.getName());
 			worldstatus.put(world.getName(), config.getBoolean("worlds."+world.getName()+".pvpenabled",true));
 			defaultenabled.put(world.getName(), config.getBoolean("worlds."+world.getName()+".logindefault",true));
-			forcepvpworld.put(world.getName(), config.getBoolean("worlds." +world.getName()+".forcepvp", true));
+			forcepvpworld.put(world.getName(), config.getBoolean("worlds."+world.getName()+".forcepvp", false));
 			HashMap<Player, Boolean> players = new HashMap<Player, Boolean>();
 			worlds.add(players);
 		}
