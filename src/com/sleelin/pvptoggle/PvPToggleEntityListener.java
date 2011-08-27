@@ -32,6 +32,11 @@ public class PvPToggleEntityListener extends EntityListener {
 					}
 					if (proceed){
 						Player damager = (Player) edbye.getDamager();
+						if (!(PvPToggle.worldstatus.get(player.getWorld().getName()))) {
+							damager.sendMessage(ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!");
+							event.setCancelled(true);
+							return;
+						}
 						if (!(PvPToggle.forcepvpworld.get(player.getWorld().getName()))) {
 							if (plugin.permissionsCheck(player, "pvptoggle.use")){
 								boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
