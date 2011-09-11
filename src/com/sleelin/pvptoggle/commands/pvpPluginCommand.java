@@ -69,7 +69,7 @@ public class pvpPluginCommand implements CommandExecutor {
 						return true;
 					}
 				}
-				if (plugin.permissionsCheck(player, "pvptoggle.admin")){
+				if ((plugin.permissionsCheck(player, "pvptoggle.admin"))||(plugin.permissionsCheck(player, "pvptoggle.command.admin"))){
 					if (args[0].equalsIgnoreCase("status")){
 						checkPlayerStatus(sender, args[0], player.getWorld().getName());
 					} else {
@@ -88,7 +88,7 @@ public class pvpPluginCommand implements CommandExecutor {
 			if (args.length == 3){
 				boolean hasperms = false;
 				if (sender instanceof Player){
-					if ((plugin.permissionsCheck(player, "pvptoggle.admin"))){
+					if ((plugin.permissionsCheck(player, "pvptoggle.admin"))||(plugin.permissionsCheck(player, "pvptoggle.command.admin"))){
 						hasperms = true;
 					}
 				} else {
@@ -143,9 +143,9 @@ public class pvpPluginCommand implements CommandExecutor {
 	private void sendUsage(CommandSender sender) {
 		if (sender instanceof Player){
 			if ((plugin.permissionsCheck((Player) sender, "pvptoggle.command.status"))&&
-					(plugin.permissionsCheck((Player) sender, "pvptoggle.admin"))){
+					((plugin.permissionsCheck((Player) sender, "pvptoggle.admin"))||(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin")))){
 				sender.sendMessage("Usage: /pvp [on|off|status] [player] [world]");
-			} else if (plugin.permissionsCheck((Player) sender, "pvptoggle.admin")){
+			} else if ((plugin.permissionsCheck((Player) sender, "pvptoggle.admin"))||(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin"))){
 				sender.sendMessage("Usage: /pvp [on|off] [player] [world]");
 			} else if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle")){
 				sender.sendMessage("Usage: /pvp [on|off]");

@@ -1,6 +1,6 @@
 name: PvPToggle
 main: com.sleelin.pvptoggle.PvPToggle
-version: 0.4.1
+version: 0.4.3
 author: Sleelin
 description: Allows players to decide whether or not they want PvP enabled
 commands:
@@ -16,3 +16,45 @@ commands:
         description: Toggles global pvp status
         uasge: |
             /gpvp [on|off|enable|disable]
+permissions:
+    pvptoggle.*:
+        description: Gives someone full use of the PvPToggle plugin
+        children:
+            pvptoggle.use: true
+            pvptoggle.command.*: true
+            pvptoggle.gcommand.*: true
+    pvptoggle.use:
+        description: Allows players to be affected by PvPToggle
+        default: false
+    pvptoggle.command.*:
+        description: Allows players to use /pvp commands
+        children:
+            pvptoggle.command.toggle: true
+            pvptoggle.command.status: true
+            pvptoggle.command.admin: true
+    pvptoggle.command.toggle:
+        description: Whether or not a player is allowed to toggle their own PvP
+        default: false
+    pvptoggle.command.status:
+        description: Whether a player can check their own PvP status in a world
+        default: false
+    pvptoggle.command.admin:
+        description: Allows a player to toggle the PvP status of any other player
+        default: false
+    pvptoggle.admin:
+        description: Allows a player to toggle the PvP status of any other player
+        default: false
+    pvptoggle.gcommand.*:
+        description: Allows players to use /gpvp commands
+        children:
+            pvptoggle.gcommand.admin: true
+            pvptoggle.gcommand.status: true
+    pvptoggle.gcommand.status:
+        description: Allows players to check global PvP status
+        default: false
+    pvptoggle.gcommand.admin:
+        description: Allows players to toggle global or world-specific PvP
+        default: false
+    pvptoggle.gadmin:
+        description: Allows players to toggle global or world-specific PvP
+        default: false    

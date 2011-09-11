@@ -1,32 +1,26 @@
-PvPToggle by sleelin & updated by AlexDGr8r
+PvPToggle by Sleelin
+With assistance from AlexDGr8r
+
 Allows PvP enabling or disabling on a per-user basis, or allows for global PvP to be enabled or disabled.
 Supports multiple worlds when defined in the config file.
 
-Supports Permission plugin. Permissions nodes:
-
-- pvptoggle.use
-	Enable usage of the pvptoggle plugin (i.e. status check when hit)
-- pvptoggle.command.toggle
-	/pvp [on|off]: individual pvp toggling
-- pvptoggle.command.status
-	/pvp status: check individual pvp status
-- pvptoggle.admin
-	/pvp [on|off|status] [player]: modify or check status of specific player in sender's current world
-	/pvp [on|off|status] [player] [world]: modify or check status of specific player in specified world
-	/pvp [on|off] *: modify status of all players in sender's current world
-	/pvp [on|off] * [world]: modify status of all players in specified world
-	
-- pvptoggle.gcommand.status
-	/gpvp status: checks global pvp status
-	/gpvp status [world]: checks pvp status in specified world
-- pvptoggle.gadmin
-	/gpvp [on|off]: toggles global pvp status
-	/gpvp [on|off] [world]: toggles pvp status in specified world
+Supports SuperPerms and legacy Permissions plugin.
 
 Changelog:
+v0.4.3:
+- Re-Added legacy Permissions support
+- Fixed SuperPerms permissions not being registered
+- Above adds support for PermissionsEx and bPermissions
+- Fixed typo in config generation and reading
+v0.4.2:
+- Re-Added Citizens support
 v0.4.0:
 - Updated to new permissions
+- Removed legacy permissions support
+- Temporarily removed Citizens support
 - Added support for forced PvP in a specific world
+v0.3.1:
+- Added Citizens support: console no longer spews errors about NPCs
 v0.3.0:
 - Added option for cooldown between last conflict and disabling PvP
 - Added console support for toggling PvP status of specific players, or all players in a specific world, or across all worlds
@@ -44,4 +38,3 @@ v0.2.0:
 - Tidied up command handling
 v0.1.0:
 - Initial release
- 

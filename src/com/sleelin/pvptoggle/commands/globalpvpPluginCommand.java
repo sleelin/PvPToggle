@@ -31,7 +31,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 					return true;
 				}
 				
-				if (plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin")){
+				if ((plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin"))||(plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.admin"))){
 					gtoggleGlobal(sender, pvpPluginCommand.checkNewValue(args[0]));			
 				} else {
 					sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
@@ -49,7 +49,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 					return true;
 				}
 				
-				if (plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin")){
+				if ((plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin"))||(plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.admin"))){
 					gtoggleWorld(sender, pvpPluginCommand.isWorld(args[1]), pvpPluginCommand.checkNewValue(args[0]));			
 				} else {
 					sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
@@ -77,7 +77,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	}
 
 	private void sendUsage(CommandSender sender) {
-		if (plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin")){
+		if ((plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin"))||(plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.admin"))){
 			sender.sendMessage("Usage: /gpvp [on|off|status] [world]");
 		} else if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status")){
 			sender.sendMessage("Usage: /gpvp [status] [world]");
