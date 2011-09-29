@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -80,14 +79,15 @@ public class PvPToggle extends JavaPlugin {
 		pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.WORLD_LOAD, this.worldListener, Event.Priority.High, this);
 		
-		registerOnlinePlayers(this.getServer().getOnlinePlayers());
-		
 		System.out.println("["+ pdfFile.getName() + "] Enabled!");
 	}
 	
 	public void onLoad(){
-		registerOnlinePlayers(this.getServer().getOnlinePlayers());
-		System.out.println("[ PvPToggle ] Loaded!");
+		for (String worldname : worldnames){
+			worlds.get(getWorldIndex(worldname)).clear();
+		}
+		worlds.clear();
+		worldnames.clear();
 	}
 	
 	private void createNewConfigFile(){
@@ -114,23 +114,6 @@ public class PvPToggle extends JavaPlugin {
 		}
 	}
 	
-	private void registerOnlinePlayers(Player[] onlinePlayers) {
-		Calendar cal = new GregorianCalendar();
-		for (Player player : onlinePlayers){
-			for (String worldname : PvPToggle.worldnames){
-				if (defaultenabled.get(worldname)){
-					this.pvpDisable(player, worldname);
-					this.log.info("Enabled for "+player.getName());
-				} else {
-					this.pvpEnable(player, worldname);
-					this.log.info("Disabled for "+player.getName());
-				}
-			}
-			lasttoggle.put(player, cal.getTime().getTime()-(1000*cooldown));
-		}
-		
-	}
-
 	private void setupPermissions(){
 		PluginDescriptionFile pdfFile = this.getDescription();
 		Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
@@ -161,21 +144,33 @@ public class PvPToggle extends JavaPlugin {
 	
 	public void loadProcedure() throws IOException {
 		Configuration config = new Configuration(configfile);
-		PluginDescriptionFile pdfFile = this.getDescription();
 		config.load();
 		globaldisabled = config.getBoolean("globalDisabled", false);
 		cooldown = config.getInt("cooldown", 0);
-		List<World> tmpworldnames = this.getServer().getWorlds();
-		for (World world : tmpworldnames){
-			log.info("[" +pdfFile.getName() + "] found and loaded world " + world.getName().toString());
-			worldnames.add(world.getName());
-			worldstatus.put(world.getName(), config.getBoolean("worlds."+world.getName()+".pvpenabled",true));
-			defaultenabled.put(world.getName(), config.getBoolean("worlds."+world.getName()+".logindefault",true));
-			forcepvpworld.put(world.getName(), config.getBoolean("worlds."+world.getName()+".forcepvp", false));
-			HashMap<Player, Boolean> players = new HashMap<Player, Boolean>();
-			worlds.add(players);
+		for (World world : this.getServer().getWorlds()){
+			loadWorld(world);
 		}
 
+	}
+	
+	public void loadWorld(World world){
+		PluginDescriptionFile pdfFile = this.getDescription();
+		Configuration config = new Configuration(configfile);
+		config.load();
+		worldnames.add(world.getName());
+		worldstatus.put(world.getName(), config.getBoolean("worlds."+world.getName()+".pvpenabled",true));
+		defaultenabled.put(world.getName(), config.getBoolean("worlds."+world.getName()+".logindefault",true));
+		forcepvpworld.put(world.getName(), config.getBoolean("worlds."+world.getName()+".forcepvp", false));
+		worlds.add(new HashMap<Player, Boolean>());
+		for (Player player : this.getServer().getOnlinePlayers()){
+			if (!defaultenabled.get(world.getName())){
+				this.pvpDisable(player, world.getName());
+			} else {
+				this.pvpEnable(player, world.getName());
+			}
+			lasttoggle.put(player, new GregorianCalendar().getTime().getTime()-(1000*PvPToggle.cooldown));
+		}
+		log.info("[" +pdfFile.getName() + "] found and loaded world " + world.getName().toString());
 	}
 
 	public void onDisable(){
@@ -194,31 +189,33 @@ public class PvPToggle extends JavaPlugin {
 	}
 	
 	public void pvpEnable(Player player, String world) {
-		HashMap<Player, Boolean> players = worlds.get(getWorldIndex(world));
-		players.remove(player);
-		players.put(player, true);
-		worlds.remove(getWorldIndex(world));
-		worlds.add(getWorldIndex(world), players);
+		worlds.get(getWorldIndex(world)).remove(player);
+		worlds.get(getWorldIndex(world)).put(player, true);
 	}
 
 	public void pvpDisable(Player player, String world) {
-		HashMap<Player, Boolean> players = worlds.get(getWorldIndex(world));
-		players.remove(player);
-		players.put(player, false);
-		worlds.remove(getWorldIndex(world));
-		worlds.add(getWorldIndex(world), players);	
+		worlds.get(getWorldIndex(world)).remove(player);
+		worlds.get(getWorldIndex(world)).put(player, false);	
 	}
 
 	public boolean pvpEnabled(Player player, String world) {
-		Boolean bplayer = worlds.get(getWorldIndex(world)).get(player);
-		//this.log.info(bplayer.toString());
-		return true;
+		if (worlds.get(getWorldIndex(world)).containsKey(player)){
+			return worlds.get(getWorldIndex(world)).get(player);
+		} else {
+			lasttoggle.put(player, new GregorianCalendar().getTime().getTime()-(1000*PvPToggle.cooldown));
+			if (!defaultenabled.get(world)){
+				this.pvpDisable(player, world);
+				return false;
+			} else {
+				this.pvpEnable(player, world);
+				return true;
+			}
+		}
 	}
 	
 	public boolean alreadyLoaded(Player player){
 		for (String worldname : worldnames){
-			HashMap<Player, Boolean> players = worlds.get(getWorldIndex(worldname));
-			if (players.containsKey(player)){
+			if (worlds.get(getWorldIndex(worldname)).containsKey(player)){
 				return true;
 			}
 		}

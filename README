@@ -12,7 +12,8 @@ v0.4.3:
 - Fixed SuperPerms permissions not being registered
 - Above adds support for PermissionsEx and bPermissions
 - Fixed typo in config generation and reading
-v0.4.2:
+- Fixed strange reload behaviour
+v0.4.1:
 - Re-Added Citizens support
 v0.4.0:
 - Updated to new permissions

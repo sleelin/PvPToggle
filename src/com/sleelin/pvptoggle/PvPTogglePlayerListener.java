@@ -6,8 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerListener;
 
-
-
 public class PvPTogglePlayerListener extends PlayerListener {
 
 	public static PvPToggle plugin;
