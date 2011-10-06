@@ -5,6 +5,6 @@
 	<classpathentry kind="lib" path="C:/Users/Sleelin/Downloads/PermissionsEx-1.13-package/Permissions.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Sleelin/Downloads/bukkit-0.0.1-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Sleelin/Downloads/Citizens.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Sleelin/Downloads/craftbukkit-0.0.1-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Sleelin/Downloads/craftbukkit-0.0.1-SNAPSHOT-1240.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
