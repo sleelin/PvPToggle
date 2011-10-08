@@ -8,7 +8,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityListener;
 
-import com.citizens.npcs.NPCManager;
+import net.citizensnpcs.api.CitizensManager;
 
 public class PvPToggleEntityListener extends EntityListener {
 	
@@ -26,7 +26,7 @@ public class PvPToggleEntityListener extends EntityListener {
 				if (edbye.getDamager() instanceof Player){
 					boolean proceed = true;
 					if (PvPToggle.citizensEnabled){
-						if (NPCManager.isNPC(player)){
+						if (CitizensManager.isNPC(player)){
 							proceed = false;
 						}
 					}
