@@ -37,8 +37,8 @@ public class pvpPluginCommand implements CommandExecutor {
 					return true;
 				}
 				if (args[0].equalsIgnoreCase("status")){
-					if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.status")){					
-						if (plugin.pvpEnabled(player, player.getWorld().getName()) || (PvPToggle.forcepvpworld.get(player.getWorld().getName()))){
+					if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.status", true)){					
+						if (plugin.pvpEnabled(player, player.getWorld().getName()) || (plugin.permissionsCheck(player, "pvptoggle.pvp.force", false))){
 							sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().getName() + ": on");
 						} else {
 							sender.sendMessage(ChatColor.GOLD + "PvP Status in " + player.getWorld().getName() + ": off");
@@ -49,11 +49,13 @@ public class pvpPluginCommand implements CommandExecutor {
 					return true;
 				}
 				
-				if (plugin.permissionsCheck(player, "pvptoggle.command.toggle") && !(PvPToggle.forcepvpworld.get(player.getWorld().getName()))){
+				if (plugin.permissionsCheck(player, "pvptoggle.pvp.force", false)){
+					sender.sendMessage(ChatColor.RED + "PvP is forced for you in this world!");
+				} else if (plugin.permissionsCheck(player, "pvptoggle.pvp.deny", false)){
+					sender.sendMessage(ChatColor.RED + "PvP is denied for you in this world!");
+				} else if (plugin.permissionsCheck(player, "pvptoggle.command.toggle", true)){
 					togglePlayer(player, checkNewValue(args[0]));
 					return true;
-				} else if (PvPToggle.forcepvpworld.get(player.getWorld().getName())) {
-					sender.sendMessage(ChatColor.RED + "PvP is forced in this world!");
 				} else {
 					sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 				}
@@ -69,7 +71,7 @@ public class pvpPluginCommand implements CommandExecutor {
 						return true;
 					}
 				}
-				if ((plugin.permissionsCheck(player, "pvptoggle.admin"))||(plugin.permissionsCheck(player, "pvptoggle.command.admin"))){
+				if ((plugin.permissionsCheck(player, "pvptoggle.admin", true))||(plugin.permissionsCheck(player, "pvptoggle.command.admin", true))){
 					if (args[0].equalsIgnoreCase("status")){
 						checkPlayerStatus(sender, args[0], player.getWorld().getName());
 					} else {
@@ -88,7 +90,7 @@ public class pvpPluginCommand implements CommandExecutor {
 			if (args.length == 3){
 				boolean hasperms = false;
 				if (sender instanceof Player){
-					if ((plugin.permissionsCheck(player, "pvptoggle.admin"))||(plugin.permissionsCheck(player, "pvptoggle.command.admin"))){
+					if ((plugin.permissionsCheck(player, "pvptoggle.admin", true))||(plugin.permissionsCheck(player, "pvptoggle.command.admin", true))){
 						hasperms = true;
 					}
 				} else {
@@ -114,11 +116,12 @@ public class pvpPluginCommand implements CommandExecutor {
 		return true;
 	}
 	
-	private void togglePlayer(Player player, boolean newval) {
+	public void togglePlayer(Player player, boolean newval) {
 		if (newval){
 			plugin.pvpEnable(player, player.getWorld().getName());
 			player.sendMessage(ChatColor.GOLD + "PvP Enabled in " + player.getWorld().getName() + "!");
 			plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " enabled pvp");
+			PvPToggle.lasttoggle.put(player, new GregorianCalendar().getTime().getTime());
 		} else if (!(newval)){
 			if (checkCooldown(player)){
 				plugin.pvpDisable(player, player.getWorld().getName());
@@ -132,7 +135,7 @@ public class pvpPluginCommand implements CommandExecutor {
 
 	private boolean checkCooldown(Player player) {
 		GregorianCalendar cal = new GregorianCalendar();
-		Long difference = cal.getTime().getTime() - PvPToggle.lasttoggle.get(player);
+		Long difference = cal.getTime().getTime() - PvPToggle.lastpvp.get(player);
 		int before = difference.compareTo(((long) PvPToggle.cooldown) * 1000);
 		if (before>=0){
 			return true;
@@ -142,15 +145,15 @@ public class pvpPluginCommand implements CommandExecutor {
 
 	private void sendUsage(CommandSender sender) {
 		if (sender instanceof Player){
-			if ((plugin.permissionsCheck((Player) sender, "pvptoggle.command.status"))&&
-					((plugin.permissionsCheck((Player) sender, "pvptoggle.admin"))||(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin")))){
+			if ((plugin.permissionsCheck((Player) sender, "pvptoggle.command.status", true))&&
+					((plugin.permissionsCheck((Player) sender, "pvptoggle.admin", true))||(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true)))){
 				sender.sendMessage("Usage: /pvp [on|off|status] [player] [world]");
-			} else if ((plugin.permissionsCheck((Player) sender, "pvptoggle.admin"))||(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin"))){
+			} else if ((plugin.permissionsCheck((Player) sender, "pvptoggle.admin", true))||(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true))){
 				sender.sendMessage("Usage: /pvp [on|off] [player] [world]");
-			} else if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle")){
+			} else if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle", true)){
 				sender.sendMessage("Usage: /pvp [on|off]");
-			} else if ((plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle"))&&
-					(plugin.permissionsCheck((Player) sender, "pvptoggle.command.status"))){
+			} else if ((plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle", true))&&
+					(plugin.permissionsCheck((Player) sender, "pvptoggle.command.status", true))){
 				sender.sendMessage("Usage: /pvp [on|off|status]");
 			}
 		} else {

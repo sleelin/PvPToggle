@@ -35,32 +35,38 @@ public class PvPToggleEntityListener extends EntityListener {
 						boolean genabled = plugin.gpvpEnabled();
 						if (!(PvPToggle.worldstatus.get(player.getWorld().getName())) || (!genabled)) {
 							if (!(PvPToggle.worldstatus.get(player.getWorld().getName()))) {
-								damager.sendMessage(ChatColor.RED + "Global PvP is disabled!");
+								damager.sendMessage(ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!");
 							}
 							if (!genabled) {
-								damager.sendMessage(ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!");
+								damager.sendMessage(ChatColor.RED + "Global PvP is disabled!");
 							}
 							event.setCancelled(true);
 							return;
 						}
-						if (!(PvPToggle.forcepvpworld.get(player.getWorld().getName()))) {
-							if (plugin.permissionsCheck(player, "pvptoggle.use")){
-								boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
-								boolean damagerenabled = plugin.pvpEnabled(damager, player.getWorld().getName());
-								if ((!targetenabled)||(!damagerenabled)){
-									String message = null;
-									if (!targetenabled){
-										message = ChatColor.RED + player.getDisplayName() + " has PvP disabled!";
-									}
-									if (!damagerenabled){
-										message = ChatColor.RED + "You have PvP disabled!";
-									}
-									damager.sendMessage(message);
-									event.setCancelled(true);
-								} else {
-									PvPToggle.lasttoggle.put(damager, new GregorianCalendar().getTime().getTime());
-									PvPToggle.lasttoggle.put(player, new GregorianCalendar().getTime().getTime());
+						if ((plugin.permissionsCheck(player, "pvptoggle.use", true))&&(!plugin.permissionsCheck(player, "pvptoggle.pvp.force", false))){							
+							boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
+							boolean damagerenabled = plugin.pvpEnabled(damager, player.getWorld().getName());
+							if ((plugin.permissionsCheck(damager, "pvptoggle.pvp.autoenable", false))&&(!damagerenabled)){
+								plugin.pvpEnable(damager, damager.getWorld().getName());
+								damagerenabled = true;
+								damager.sendMessage(ChatColor.GOLD + "PvP automatically enabled due to combat!");
+							}
+							if ((!targetenabled)||(!damagerenabled)){
+								String message = null;
+								if (!targetenabled){
+									message = ChatColor.RED + player.getDisplayName() + " has PvP disabled!";
 								}
+								if (!damagerenabled){
+									message = ChatColor.RED + "You have PvP disabled!";
+								}
+								damager.sendMessage(message);
+								event.setCancelled(true);
+							/*} else if (!checkWarmup(damager)){
+								damager.sendMessage(ChatColor.RED + "Can't PvP during warmup period!");
+								event.setCancelled(true);*/
+							} else {
+								PvPToggle.lastpvp.put(damager, new GregorianCalendar().getTime().getTime());
+								PvPToggle.lastpvp.put(player, new GregorianCalendar().getTime().getTime());
 							}
 						}
 					}
@@ -68,4 +74,14 @@ public class PvPToggleEntityListener extends EntityListener {
 			}
 		}
 	}
+	
+	/*private boolean checkWarmup(Player player) {
+		GregorianCalendar cal = new GregorianCalendar();
+		Long difference = cal.getTime().getTime() - PvPToggle.lastpvp.get(player);
+		int before = difference.compareTo(((long) PvPToggle.warmup) * 1000);
+		if (before>=0){
+			return true;
+		}
+		return false;
+	}*/
 }

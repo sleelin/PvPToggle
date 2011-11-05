@@ -7,6 +7,15 @@ Supports multiple worlds when defined in the config file.
 Supports SuperPerms and legacy Permissions plugin.
 
 Changelog:
+v0.5.0:
+- Added pvptoggle.pvp.force permissions node
+- Added pvptoggle.pvp.deny permissions node
+- Added pvptoggle.pvp.autoenable permissions node
+- Fixed bug where disabled world PvP reported global PvP disabled instead of world disabled. 
+- Removed redundant force option
+- Added permissions debugging
+v0.4.4:
+- Updated to new Citizens API (they really should stop changing this!)
 v0.4.3:
 - Re-Added legacy Permissions support
 - Fixed SuperPerms permissions not being registered

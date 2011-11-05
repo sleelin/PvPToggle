@@ -24,7 +24,7 @@ public class PvPTogglePlayerListener extends PlayerListener {
 					plugin.pvpEnable(player, worldname);
 				}
 			}
-			PvPToggle.lasttoggle.put(player, new GregorianCalendar().getTime().getTime()-(1000*PvPToggle.cooldown));
+			PvPToggle.lastpvp.put(player, new GregorianCalendar().getTime().getTime()-(1000*PvPToggle.cooldown));
 		}
 	}
 

@@ -1,6 +1,6 @@
 name: PvPToggle
 main: com.sleelin.pvptoggle.PvPToggle
-version: 0.4.4
+version: 0.5.0
 author: Sleelin
 description: Allows players to decide whether or not they want PvP enabled
 commands:
@@ -17,16 +17,16 @@ commands:
         uasge: |
             /gpvp [on|off|enable|disable]
 permissions:
-    pvptoggle.*:
+    pvptoggle:
         description: Gives someone full use of the PvPToggle plugin
         children:
             pvptoggle.use: true
-            pvptoggle.command.*: true
-            pvptoggle.gcommand.*: true
+            pvptoggle.command: true
+            pvptoggle.gcommand: true
     pvptoggle.use:
         description: Allows players to be affected by PvPToggle
         default: false
-    pvptoggle.command.*:
+    pvptoggle.command:
         description: Allows players to use /pvp commands
         children:
             pvptoggle.command.toggle: true
@@ -44,7 +44,7 @@ permissions:
     pvptoggle.admin:
         description: Allows a player to toggle the PvP status of any other player
         default: false
-    pvptoggle.gcommand.*:
+    pvptoggle.gcommand:
         description: Allows players to use /gpvp commands
         children:
             pvptoggle.gcommand.admin: true
@@ -57,4 +57,20 @@ permissions:
         default: false
     pvptoggle.gadmin:
         description: Allows players to toggle global or world-specific PvP
-        default: false    
+        default: false
+    pvptoggle.pvp:
+        description: SuperPerms is fucking retarded
+        default: true
+        children:
+            pvptoggle.pvp.force: false
+            pvptoggle.pvp.deny: false
+            pvptoggle.pvp.autoenable: false
+    pvptoggle.pvp.force:
+        description: Force player PvP enabled
+        default: false
+    pvptoggle.pvp.deny:
+        description: Force player PvP disabled
+        default: false
+    pvptoggle.pvp.autoenable:
+        description: Automatically enable PvP on combat
+        default: false
