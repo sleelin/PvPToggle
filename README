@@ -7,6 +7,10 @@ Supports multiple worlds when defined in the config file.
 Supports SuperPerms and legacy Permissions plugin.
 
 Changelog:
+v1.0.0:
+- Rewrote command handlers to enable easier addition, modification and maintenance
+- Fixed issues with certain commands not performing as expected
+- Added blocking of damage due to projectiles fired by players in combat (including arrows, fireballs and snowballs!)
 v0.5.0:
 - Added pvptoggle.pvp.force permissions node
 - Added pvptoggle.pvp.deny permissions node

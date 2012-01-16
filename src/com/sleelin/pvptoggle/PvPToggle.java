@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.bukkit.World;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.config.Configuration;
 
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
@@ -90,19 +90,19 @@ public class PvPToggle extends JavaPlugin {
 	
 	private void createNewConfigFile(){
 		PluginDescriptionFile pdfFile = this.getDescription();
-		Configuration config = new Configuration(configfile);
+		Configuration config = this.getConfig();
 		log.info("[" + pdfFile.getName() + "] Config file not found, autogenerating...");
 
-		config.setProperty("globalDisabled", false);
-		config.setProperty("cooldown", 0);
-		config.setProperty("warmup", 0);
-		config.setProperty("debug", false);
+		config.set("globalDisabled", false);
+		config.set("cooldown", 0);
+		config.set("warmup", 0);
+		config.set("debug", false);
 		for (World world : this.getServer().getWorlds()){
 			log.info("[" +pdfFile.getName() + "] found world " + world.getName().toString());
-			config.setProperty("worlds."+world.getName().toString()+".logindefault", false);
-			config.setProperty("worlds."+world.getName().toString()+".pvpenabled", true);
+			config.set("worlds."+world.getName().toString()+".logindefault", false);
+			config.set("worlds."+world.getName().toString()+".pvpenabled", true);
 		}
-		config.save();
+		this.saveConfig();
 	}
 	
 	private void setupPermissions(){
@@ -132,8 +132,7 @@ public class PvPToggle extends JavaPlugin {
 	}	
 	
 	private void loadProcedure() throws IOException {
-		Configuration config = new Configuration(configfile);
-		config.load();
+		Configuration config = this.getConfig();
 		globaldisabled = config.getBoolean("globalDisabled", false);
 		cooldown = config.getInt("cooldown", 0);
 		warmup = config.getInt("warmup", 0);
@@ -145,8 +144,7 @@ public class PvPToggle extends JavaPlugin {
 	}
 	
 	public void loadWorld(World world){
-		Configuration config = new Configuration(configfile);
-		config.load();
+		Configuration config = this.getConfig();
 		worldnames.add(world.getName());
 		worldstatus.put(world.getName(), config.getBoolean("worlds."+world.getName()+".pvpenabled",true));
 		defaultenabled.put(world.getName(), config.getBoolean("worlds."+world.getName()+".logindefault",true));
