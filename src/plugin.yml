@@ -1,6 +1,6 @@
 name: PvPToggle
 main: com.sleelin.pvptoggle.PvPToggle
-version: 1.0.0
+version: 1.0.1
 author: Sleelin
 description: Allows players to decide whether or not they want PvP enabled
 commands:
@@ -19,6 +19,7 @@ commands:
 permissions:
     pvptoggle:
         description: Gives someone full use of the PvPToggle plugin
+        default: false
         children:
             pvptoggle.use: true
             pvptoggle.command: true
@@ -28,6 +29,7 @@ permissions:
         default: false
     pvptoggle.command:
         description: Allows players to use /pvp commands
+        default: false
         children:
             pvptoggle.command.toggle: true
             pvptoggle.command.status: true
@@ -46,6 +48,7 @@ permissions:
         default: false
     pvptoggle.gcommand:
         description: Allows players to use /gpvp commands
+        default: false
         children:
             pvptoggle.gcommand.admin: true
             pvptoggle.gcommand.status: true
