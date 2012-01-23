@@ -142,10 +142,11 @@ public class pvpPluginCommand implements CommandExecutor {
 		
 		// look through players to see if any of them match
 		for (Player search : players){
-			if (search.getDisplayName().toLowerCase().contains(player.toLowerCase())){
+			if ((search.getDisplayName().toLowerCase().contains(player.toLowerCase())||(search.getName().toLowerCase().contains(player.toLowerCase())))){
 				found.add(search);
 			}
 		}
+		
 		if (found.size() == 1){
 			return found.get(0);	// return found player
 		} else if (found.size() > 1) {
