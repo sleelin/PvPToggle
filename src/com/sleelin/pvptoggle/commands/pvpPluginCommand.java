@@ -102,9 +102,7 @@ public class pvpPluginCommand implements CommandExecutor {
 		Player player = getPlayer(sender, target);
 		
 		// check for permission to view own or other player's status
-		if (((!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.status", true)))
-				&&(sender.getName().equalsIgnoreCase(target))) 
-				|| (!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true)))){
+		if (((!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.status", true)))) && (!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true)))){
 			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 			return;
 		}
@@ -175,9 +173,7 @@ public class pvpPluginCommand implements CommandExecutor {
 	private void togglePlayer(CommandSender sender, String targetplayer, boolean newval, String world) {
 		
 		// check for permission to view own or other player's status
-		if (((!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle", true)))
-				&&(sender.getName().equalsIgnoreCase(targetplayer))) 
-				|| (!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true)))){
+		if (((!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle", true)))) && (!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true)))){
 			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 			return;	// no permission, return out
 		}

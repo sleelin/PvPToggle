@@ -1,6 +1,6 @@
 name: PvPToggle
 main: com.sleelin.pvptoggle.PvPToggle
-version: 1.0.1
+version: 1.0.2
 author: Sleelin
 description: Allows players to decide whether or not they want PvP enabled
 commands:

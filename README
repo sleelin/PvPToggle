@@ -7,6 +7,8 @@ Supports multiple worlds when defined in the config file.
 Supports SuperPerms and legacy Permissions plugin.
 
 Changelog:
+v1.0.2:
+- Fixed permissions for individuals toggling or checking PvP for themselves
 v1.0.1:
 - Fixed issues to do with permissions when toggling or checking status of other players
 v1.0.0:
