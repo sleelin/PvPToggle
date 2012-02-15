@@ -1,19 +1,24 @@
-package com.sleelin.pvptoggle;
+package com.sleelin.pvptoggle.listeners;
 
 import java.util.GregorianCalendar;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerListener;
 
-public class PvPTogglePlayerListener extends PlayerListener {
+import com.sleelin.pvptoggle.PvPToggle;
+
+public class PlayerListener implements Listener {
 
 	public static PvPToggle plugin;
 	
-	public PvPTogglePlayerListener(PvPToggle instance) {
+	public PlayerListener(PvPToggle instance) {
 		plugin = instance;
 	}
 	
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerJoin(PlayerJoinEvent event){
 		Player player = (Player) event.getPlayer();
 		if (!plugin.alreadyLoaded(player)){

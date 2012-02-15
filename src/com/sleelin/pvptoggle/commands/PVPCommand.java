@@ -11,10 +11,10 @@ import org.bukkit.entity.Player;
 
 import com.sleelin.pvptoggle.PvPToggle;
 
-public class pvpPluginCommand implements CommandExecutor {
+public class PVPCommand implements CommandExecutor {
 	private final PvPToggle plugin;
 	
-	public pvpPluginCommand(PvPToggle instance){
+	public PVPCommand(PvPToggle instance){
 		plugin = instance;
 	}
 	
@@ -72,7 +72,11 @@ public class pvpPluginCommand implements CommandExecutor {
 			switch (args.length){
 			case 1:
 				// get command sender's status
-				getStatus(sender, player.getName(), player.getWorld().getName());
+				if (player != null){
+					getStatus(sender, player.getName(), player.getWorld().getName());
+				} else {
+					sender.sendMessage(ChatColor.RED + "Cannot run this command fromt he console!");
+				}
 				break;
 			case 2:
 				// get player's status in sender's world
@@ -102,7 +106,8 @@ public class pvpPluginCommand implements CommandExecutor {
 		Player player = getPlayer(sender, target);
 		
 		// check for permission to view own or other player's status
-		if (((!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.status", true)))) && (!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true)))){
+		if (!((plugin.permissionsCheck(sender, "pvptoggle.command.status", true)) && (sender.getName().equalsIgnoreCase(target))) 
+				|| (plugin.permissionsCheck(sender, "pvptoggle.command.admin", true))){
 			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 			return;
 		}
@@ -174,7 +179,8 @@ public class pvpPluginCommand implements CommandExecutor {
 	private void togglePlayer(CommandSender sender, String targetplayer, boolean newval, String world) {
 		
 		// check for permission to view own or other player's status
-		if (((!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle", true)))) && (!(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true)))){
+		if (!(((plugin.permissionsCheck(sender, "pvptoggle.command.toggle", true))&&(sender.getName().equalsIgnoreCase(targetplayer))) 
+				|| (plugin.permissionsCheck(sender, "pvptoggle.command.admin", true)))){
 			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 			return;	// no permission, return out
 		}
@@ -277,15 +283,15 @@ public class pvpPluginCommand implements CommandExecutor {
 	 */
 	private void sendUsage(CommandSender sender) {
 		if (sender instanceof Player){
-			if ((plugin.permissionsCheck((Player) sender, "pvptoggle.command.status", true))&&
-					((plugin.permissionsCheck((Player) sender, "pvptoggle.admin", true))||(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true)))){
+			if ((plugin.permissionsCheck(sender, "pvptoggle.command.status", true))&&
+					((plugin.permissionsCheck(sender, "pvptoggle.admin", true))||(plugin.permissionsCheck(sender, "pvptoggle.command.admin", true)))){
 				sender.sendMessage("Usage: /pvp [on|off|status] [player] [world]");
-			} else if ((plugin.permissionsCheck((Player) sender, "pvptoggle.admin", true))||(plugin.permissionsCheck((Player) sender, "pvptoggle.command.admin", true))){
+			} else if ((plugin.permissionsCheck(sender, "pvptoggle.admin", true))||(plugin.permissionsCheck(sender, "pvptoggle.command.admin", true))){
 				sender.sendMessage("Usage: /pvp [on|off] [player] [world]");
-			} else if (plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle", true)){
+			} else if (plugin.permissionsCheck(sender, "pvptoggle.command.toggle", true)){
 				sender.sendMessage("Usage: /pvp [on|off]");
-			} else if ((plugin.permissionsCheck((Player) sender, "pvptoggle.command.toggle", true))&&
-					(plugin.permissionsCheck((Player) sender, "pvptoggle.command.status", true))){
+			} else if ((plugin.permissionsCheck(sender, "pvptoggle.command.toggle", true))&&
+					(plugin.permissionsCheck(sender, "pvptoggle.command.status", true))){
 				sender.sendMessage("Usage: /pvp [on|off|status]");
 			}
 		} else {

@@ -4,19 +4,15 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import com.sleelin.pvptoggle.PvPToggle;
 
-public class globalpvpPluginCommand implements CommandExecutor {
+public class GPVPCommand implements CommandExecutor {
 	private final PvPToggle plugin;
 	
-	public globalpvpPluginCommand(PvPToggle instance){
+	public GPVPCommand(PvPToggle instance){
 		plugin = instance;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.bukkit.command.CommandExecutor#onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command, java.lang.String, java.lang.String[])
-	 */
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
 		if (args.length == 0){
@@ -29,11 +25,11 @@ public class globalpvpPluginCommand implements CommandExecutor {
 			switch (args.length){
 			case 1:
 				// toggle global status
-				gtoggleGlobal(sender, pvpPluginCommand.checkNewValue(args[0]));
+				gtoggleGlobal(sender, PVPCommand.checkNewValue(args[0]));
 				break;
 			case 2:
 				// toggle specific world status
-				gtoggleWorld(sender, pvpPluginCommand.isWorld(sender, args[1]), pvpPluginCommand.checkNewValue(args[0]));
+				gtoggleWorld(sender, PVPCommand.isWorld(sender, args[1]), PVPCommand.checkNewValue(args[0]));
 				break;
 			}
 		} else if (args[0].equalsIgnoreCase("status")){
@@ -44,7 +40,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 				break;
 			case 2:
 				// check world status
-				worldStatus(sender, pvpPluginCommand.isWorld(sender, args[1]));
+				worldStatus(sender, PVPCommand.isWorld(sender, args[1]));
 				break;
 			}
 		}
@@ -57,7 +53,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	 * @param sender - command sender
 	 */
 	private void globalStatus(CommandSender sender){
-		if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status", true)){
+		if (plugin.permissionsCheck(sender, "pvptoggle.gcommand.status", true)){
 			
 			if (plugin.gpvpEnabled()){
 				sender.sendMessage(ChatColor.GOLD + "Global PvP Status: on");
@@ -77,7 +73,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	 * @param world
 	 */
 	private void worldStatus(CommandSender sender, String worldname) {
-		if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status", true)){
+		if (plugin.permissionsCheck(sender, "pvptoggle.gcommand.status", true)){
 			
 			if (worldname != null){
 				if (PvPToggle.worldstatus.get(worldname)){
@@ -94,15 +90,15 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	}
 
 	private void sendUsage(CommandSender sender) {
-		if ((plugin.permissionsCheck((Player) sender, "pvptoggle.gadmin", true))||(plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.admin", true))){
+		if ((plugin.permissionsCheck(sender, "pvptoggle.gadmin", true))||(plugin.permissionsCheck(sender, "pvptoggle.gcommand.admin", true))){
 			sender.sendMessage("Usage: /gpvp [on|off|status] [world]");
-		} else if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.status", true)){
+		} else if (plugin.permissionsCheck(sender, "pvptoggle.gcommand.status", true)){
 			sender.sendMessage("Usage: /gpvp [status] [world]");
 		}
 	}
 	
 	private void gtoggleGlobal(CommandSender sender, boolean newval) {
-		if ((plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.toggle", true))||(plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.admin", true))){
+		if ((plugin.permissionsCheck(sender, "pvptoggle.gcommand.toggle", true))||(plugin.permissionsCheck(sender, "pvptoggle.gcommand.admin", true))){
 			plugin.gpvpToggle(newval);
 			String message = null;
 			if (newval){
@@ -115,7 +111,7 @@ public class globalpvpPluginCommand implements CommandExecutor {
 	}
 	
 	private void gtoggleWorld(CommandSender sender, String targetworld, boolean newval){
-		if (plugin.permissionsCheck((Player) sender, "pvptoggle.gcommand.admin", true)){
+		if (plugin.permissionsCheck(sender, "pvptoggle.gcommand.admin", true)){
 			if (targetworld != null){
 				plugin.setWorldStatus(targetworld, newval);
 				String message;

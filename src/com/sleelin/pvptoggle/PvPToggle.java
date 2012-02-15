@@ -2,26 +2,35 @@ package com.sleelin.pvptoggle;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.Plugin;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-import com.sleelin.pvptoggle.commands.globalpvpPluginCommand;
-import com.sleelin.pvptoggle.commands.pvpPluginCommand;
+import com.sleelin.pvptoggle.commands.GPVPCommand;
+import com.sleelin.pvptoggle.commands.PVPCommand;
+import com.sleelin.pvptoggle.listeners.EntityListener;
+import com.sleelin.pvptoggle.listeners.PlayerListener;
+import com.sleelin.pvptoggle.listeners.WorldListener;
 
 /**
  * PvPToggle
@@ -38,12 +47,18 @@ public class PvPToggle extends JavaPlugin {
 	public static int cooldown = 0;
 	public static int warmup = 0;
 	public static boolean debugging = false;
+	private static int updateinterval = 0;
 		
 	public static PermissionHandler permissionHandler;
+	private Runnable updateThread;
+    private int updateId = -1;
+    private static final String RSS_URL = "http://dev.bukkit.org/server-mods/PvPToggle/files.rss";
+    private static String version;
+    private static String name;
 	
-	private final PvPTogglePlayerListener playerListener = new PvPTogglePlayerListener(this);
-	private final PvPToggleEntityListener entityListener = new PvPToggleEntityListener(this);
-	private final PvPToggleWorldListener worldListener = new PvPToggleWorldListener(this);
+	private final PlayerListener playerListener = new PlayerListener(this);
+	private final EntityListener entityListener = new EntityListener(this);
+	private final WorldListener worldListener = new WorldListener(this);
 	final static ArrayList<HashMap<Player, Boolean>> worlds = new ArrayList<HashMap<Player, Boolean>>();
 	public Logger log = Logger.getLogger("Minecraft");
 	public static List<String> worldnames = new ArrayList<String>();
@@ -67,15 +82,17 @@ public class PvPToggle extends JavaPlugin {
 		setupPermissions();
 		checkCitizens();
 		
-		getCommand("tpvp").setExecutor(new pvpPluginCommand(this));
-		getCommand("pvp").setExecutor(new pvpPluginCommand(this));
-		getCommand("gpvp").setExecutor(new globalpvpPluginCommand(this));
+		getCommand("tpvp").setExecutor(new PVPCommand(this));
+		getCommand("pvp").setExecutor(new PVPCommand(this));
+		getCommand("gpvp").setExecutor(new GPVPCommand(this));
 		
-		PluginManager pm = this.getServer().getPluginManager();
-		pm.registerEvent(Event.Type.PLAYER_CHAT, this.playerListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.PLAYER_JOIN, this.playerListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.ENTITY_DAMAGE, this.entityListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.WORLD_LOAD, this.worldListener, Event.Priority.High, this);
+		this.getServer().getPluginManager().registerEvents(this.playerListener, this);
+		this.getServer().getPluginManager().registerEvents(this.entityListener, this);
+		this.getServer().getPluginManager().registerEvents(this.worldListener, this);
+		
+		PvPToggle.version = this.getDescription().getVersion();
+		PvPToggle.name = this.getDescription().getName();
+		startUpdateThread();
 		
 		System.out.println("["+ this.getDescription().getName() + "] v"+this.getDescription().getVersion()+" enabled!");
 	}
@@ -89,16 +106,16 @@ public class PvPToggle extends JavaPlugin {
 	}
 	
 	private void createNewConfigFile(){
-		PluginDescriptionFile pdfFile = this.getDescription();
 		Configuration config = this.getConfig();
-		log.info("[" + pdfFile.getName() + "] Config file not found, autogenerating...");
+		log.info("[" + this.getDescription().getName() + "] Config file not found, autogenerating...");
 
 		config.set("globalDisabled", false);
 		config.set("cooldown", 0);
 		config.set("warmup", 0);
 		config.set("debug", false);
+		config.set("updateinterval", 21600);
 		for (World world : this.getServer().getWorlds()){
-			log.info("[" +pdfFile.getName() + "] found world " + world.getName().toString());
+			log.info("[" + this.getDescription().getName() + "] found world " + world.getName().toString());
 			config.set("worlds."+world.getName().toString()+".logindefault", false);
 			config.set("worlds."+world.getName().toString()+".pvpenabled", true);
 		}
@@ -137,6 +154,7 @@ public class PvPToggle extends JavaPlugin {
 		cooldown = config.getInt("cooldown", 0);
 		warmup = config.getInt("warmup", 0);
 		debugging = config.getBoolean("debug", false);
+		updateinterval = config.getInt("updateinterval", 21600);
 		for (World world : this.getServer().getWorlds()){
 			loadWorld(world);
 		}
@@ -161,6 +179,7 @@ public class PvPToggle extends JavaPlugin {
 	}
 
 	public void onDisable(){
+		stopUpdateThread();
 		log.info("[PvPToggle] Disabled");
 	}
 	
@@ -219,8 +238,15 @@ public class PvPToggle extends JavaPlugin {
 		}
 	}
 	
-	public boolean permissionsCheck(Player player, String permissions, boolean opdefault){
+	public boolean permissionsCheck(CommandSender sender, String permissions, boolean opdefault){
 		boolean haspermissions = opdefault;
+		Player player;
+		
+		if (sender instanceof Player){
+			player = (Player) sender;
+		} else {
+			return true;
+		}
 		if (debugging) log.info(player.getName().toString()+"/"+permissions+"/Start: "+haspermissions);
 		
 		if (PvPToggle.permissionHandler != null){
@@ -255,4 +281,55 @@ public class PvPToggle extends JavaPlugin {
 		}
 	}
 	
+	// Thanks to Defxor & Courier for code on how to create an update checking thread
+	// http://dev.bukkit.org/profiles/defxor
+	private void startUpdateThread() {
+
+        if(updateinterval == 0) { // == disabled
+            return;
+        }
+        if(updateThread == null) {
+            updateThread = new Runnable() {
+                public void run() {
+                    String checkVersion = updateCheck(version);
+                    if(!checkVersion.endsWith(version)) {
+                        log.warning("["+name+"] Found new version: " + checkVersion + " (you have [v" + version + "])");
+                        log.warning("["+name+"] Visit http://dev.bukkit.org/server-mods/" + name + "/ to download!");
+                    }
+                }
+            };
+        }
+        // 400 = 20 seconds from start, then a period according to config (default every 24h)
+        updateId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, updateThread, 400, updateinterval*20);
+    }
+
+    private void stopUpdateThread() {
+        if(updateId != -1) {
+            getServer().getScheduler().cancelTask(updateId);
+            updateId = -1;
+        }
+    }
+	
+    // Thanks to Sleaker & vault for the hint and code on how to use BukkitDev RSS feed for this
+    // http://dev.bukkit.org/profiles/Sleaker/
+    public String updateCheck(String currentVersion) {
+        try {
+            URL url = new URL(RSS_URL);
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(url.openConnection().getInputStream());
+            doc.getDocumentElement().normalize();
+            NodeList nodes = doc.getElementsByTagName("item");
+            Node firstNode = nodes.item(0);
+            if (firstNode.getNodeType() == 1) {
+                Element firstElement = (Element)firstNode;
+                NodeList firstElementTagName = firstElement.getElementsByTagName("title");
+                Element firstNameElement = (Element) firstElementTagName.item(0);
+                NodeList firstNodes = firstNameElement.getChildNodes();
+                return firstNodes.item(0).getNodeValue();
+            }
+        }
+        catch (Exception e) {
+            return currentVersion;
+        }
+        return currentVersion;
+    }
 }

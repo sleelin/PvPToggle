@@ -1,28 +1,29 @@
-package com.sleelin.pvptoggle;
+package com.sleelin.pvptoggle.listeners;
 
 import java.util.GregorianCalendar;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityListener;
+
+import com.sleelin.pvptoggle.PvPToggle;
 
 import net.citizensnpcs.api.CitizensManager;
 
-public class PvPToggleEntityListener extends EntityListener {
+public class EntityListener implements Listener {
 	
 	public static PvPToggle plugin;
 	
-	public PvPToggleEntityListener(PvPToggle instance) {
+	public EntityListener(PvPToggle instance) {
 		plugin = instance;
 	}
 	
-	public void onBlockBreak(){
-		
-	}
-	
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onEntityDamage(EntityDamageEvent event){
 		if (event.getEntity() instanceof Player){
 			Player player = (Player) event.getEntity();
