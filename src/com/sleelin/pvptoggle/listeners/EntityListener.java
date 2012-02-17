@@ -64,6 +64,10 @@ public class EntityListener implements Listener {
 					if ((plugin.permissionsCheck(player, "pvptoggle.use", true))&&(!plugin.permissionsCheck(player, "pvptoggle.pvp.force", false))){							
 						boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
 						boolean damagerenabled = plugin.pvpEnabled(damager, player.getWorld().getName());
+						if ((!checkWarmup(damager))&&(!(plugin.permissionsCheck(damager, "pvptoggle.pvp.bypasswarmup", false)))){
+							damager.sendMessage(ChatColor.RED + "You only just enabled PvP!");
+							event.setCancelled(true);
+						}
 						if ((plugin.permissionsCheck(damager, "pvptoggle.pvp.autoenable", false))&&(!damagerenabled)){
 							plugin.pvpEnable(damager, damager.getWorld().getName());
 							damagerenabled = true;
@@ -90,13 +94,13 @@ public class EntityListener implements Listener {
 		}
 	}
 	
-	/*private boolean checkWarmup(Player player) {
+	private boolean checkWarmup(Player player) {
 		GregorianCalendar cal = new GregorianCalendar();
-		Long difference = cal.getTime().getTime() - PvPToggle.lastpvp.get(player);
+		Long difference = cal.getTime().getTime() - PvPToggle.lasttoggle.get(player);
 		int before = difference.compareTo(((long) PvPToggle.warmup) * 1000);
 		if (before>=0){
 			return true;
 		}
 		return false;
-	}*/
+	}
 }

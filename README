@@ -10,6 +10,8 @@ Changelog:
 v1.1.0:
 - Added automatic update checker
 - Fixed issues in sending commands from console
+- Added PvP enabled warmup
+- Fixed issues with checking PvP status
 v1.0.3:
 - Fixed issues with toggling other user's PvP arising from last version
 v1.0.2:

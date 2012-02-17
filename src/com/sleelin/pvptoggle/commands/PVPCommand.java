@@ -106,8 +106,8 @@ public class PVPCommand implements CommandExecutor {
 		Player player = getPlayer(sender, target);
 		
 		// check for permission to view own or other player's status
-		if (!((plugin.permissionsCheck(sender, "pvptoggle.command.status", true)) && (sender.getName().equalsIgnoreCase(target))) 
-				|| (plugin.permissionsCheck(sender, "pvptoggle.command.admin", true))){
+		if (!(((plugin.permissionsCheck(sender, "pvptoggle.command.status", true))&&(sender.getName().equalsIgnoreCase(target))) 
+				|| (plugin.permissionsCheck(sender, "pvptoggle.command.admin", true)))){
 			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
 			return;
 		}

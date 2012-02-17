@@ -1,6 +1,6 @@
 name: PvPToggle
 main: com.sleelin.pvptoggle.PvPToggle
-version: 1.1.0
+version: 1.1.0a
 author: Sleelin
 description: Allows players to decide whether or not they want PvP enabled
 commands:
@@ -76,4 +76,7 @@ permissions:
         default: false
     pvptoggle.pvp.autoenable:
         description: Automatically enable PvP on combat
+        default: false
+    pvptoggle.pvp.bypasswarmup:
+        description: Bypass the warmup period of player PvPing
         default: false
