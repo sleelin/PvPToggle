@@ -29,7 +29,7 @@ public class PlayerListener implements Listener {
 					plugin.pvpEnable(player, worldname);
 				}
 			}
-			PvPToggle.lastpvp.put(player, new GregorianCalendar().getTime().getTime()-(1000*PvPToggle.cooldown));
+			plugin.lastaction.put(player, plugin.new PvPAction(new GregorianCalendar().getTime().getTime()-(1000*plugin.cooldown)*(1000*plugin.warmup),"login"));
 		}
 	}
 

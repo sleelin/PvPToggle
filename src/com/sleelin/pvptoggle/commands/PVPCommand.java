@@ -199,10 +199,10 @@ public class PVPCommand implements CommandExecutor {
 				plugin.pvpEnable(player, player.getWorld().getName());
 				player.sendMessage(ChatColor.GOLD + "PvP Enabled in " + player.getWorld().getName() + "!");
 				plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " enabled pvp");
-				PvPToggle.lasttoggle.put(player, new GregorianCalendar().getTime().getTime());
+				plugin.lastaction.put(player, plugin.new PvPAction(new GregorianCalendar().getTime().getTime(), "toggle"));
 			} else if (!(newval)){
 				// if disabling
-				if (checkCooldown(player)){
+				if (plugin.checkLastAction(player, "toggle")){
 					plugin.pvpDisable(player, player.getWorld().getName());
 					player.sendMessage(ChatColor.GOLD + "PvP Disabled in " + player.getWorld().getName() + "!");
 					plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " disabled pvp");
@@ -222,7 +222,8 @@ public class PVPCommand implements CommandExecutor {
 				plugin.pvpDisable(player, world);
 				player.sendMessage(ChatColor.GOLD + "PvP Disabled in world " + world + " by " + sender.getName() + "!");
 				sender.sendMessage(ChatColor.GOLD + "Successfully disabled PvP for player " + player.getName() + "!");
-			}			
+			}
+			plugin.lastaction.put(player, plugin.new PvPAction(new GregorianCalendar().getTime().getTime(), "toggle"));
 		}
 	}
 
@@ -262,21 +263,6 @@ public class PVPCommand implements CommandExecutor {
 		sender.sendMessage(ChatColor.GOLD + message);
 	}
 	
-	/**
-	 * Checks whether or not it has been longer than the specified cooldown period since last player PvP 
-	 * @param player - whose cooldown to check
-	 * @return boolean true for wait over, false for still waiting
-	 */
-	private boolean checkCooldown(Player player) {
-		GregorianCalendar cal = new GregorianCalendar();
-		Long difference = cal.getTime().getTime() - PvPToggle.lastpvp.get(player);
-		int before = difference.compareTo(((long) PvPToggle.cooldown) * 1000);
-		if (before>=0){
-			return true;
-		}
-		return false;
-	}
-
 	/**
 	 * Print command usage to screen/chat
 	 * @param sender - command sender

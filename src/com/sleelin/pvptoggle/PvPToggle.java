@@ -44,8 +44,8 @@ public class PvPToggle extends JavaPlugin {
 	static String fileName = "config.yml";
 	public static File configfile = new File (mainDirectory + File.separator + fileName);
 	static boolean globaldisabled;
-	public static int cooldown = 0;
-	public static int warmup = 0;
+	public int cooldown = 0;
+	public int warmup = 0;
 	public static boolean debugging = false;
 	private static int updateinterval = 0;
 		
@@ -64,9 +64,17 @@ public class PvPToggle extends JavaPlugin {
 	public static List<String> worldnames = new ArrayList<String>();
 	public static HashMap<String, Boolean> defaultenabled = new HashMap<String, Boolean>();
 	public static HashMap<String, Boolean> worldstatus = new HashMap<String, Boolean>();
-	public static HashMap<Player, Long> lastpvp = new HashMap<Player, Long>();
-	public static HashMap<Player, Long> lasttoggle = new HashMap<Player, Long>();
+	public HashMap<Player, PvPAction> lastaction = new HashMap<Player, PvPAction>();
 	public static boolean citizensEnabled = false;
+	
+	public class PvPAction {
+		Long time;
+		String action;
+		public PvPAction (Long itime, String iaction){
+			time = itime;
+			action = iaction;
+		}
+	}
 	
 	public void onEnable(){
 		log.info("[" + this.getDescription().getName() + "] Loading...");
@@ -173,7 +181,7 @@ public class PvPToggle extends JavaPlugin {
 			} else {
 				this.pvpEnable(player, world.getName());
 			}
-			lastpvp.put(player, new GregorianCalendar().getTime().getTime()-(1000*PvPToggle.cooldown));
+			lastaction.put(player, new PvPAction(new GregorianCalendar().getTime().getTime()-(1000*this.cooldown)*(1000*this.warmup), "login"));
 		}
 		log.info("[" +this.getDescription().getName() + "] found and loaded world " + world.getName().toString());
 	}
@@ -210,7 +218,7 @@ public class PvPToggle extends JavaPlugin {
 		if (worlds.get(getWorldIndex(world)).containsKey(player)){
 			return worlds.get(getWorldIndex(world)).get(player);
 		} else {
-			lastpvp.put(player, new GregorianCalendar().getTime().getTime()-(1000*PvPToggle.cooldown));
+			lastaction.put(player, new PvPAction(new GregorianCalendar().getTime().getTime()-(1000*this.cooldown), "login"));
 			if (!defaultenabled.get(world)){
 				this.pvpDisable(player, world);
 				return false;
@@ -281,6 +289,31 @@ public class PvPToggle extends JavaPlugin {
 		}
 	}
 	
+	/**
+	 * Checks whether or not it has been longer than the specified cooldown period since last player PvP 
+	 * @param player - whose cooldown to check
+	 * @return boolean true for wait over, false for still waiting
+	 */
+	public boolean checkLastAction(Player player, String action) {
+		GregorianCalendar cal = new GregorianCalendar();
+		Long difference = cal.getTime().getTime() - this.lastaction.get(player).time;
+		int before = 0;
+		if (action.equalsIgnoreCase("combat")){
+			if (this.lastaction.get(player).action.equalsIgnoreCase("toggle")){
+				before = difference.compareTo(((long) this.warmup) * 1000);
+			}
+		} else if (action.equalsIgnoreCase("toggle")){
+			if (this.lastaction.get(player).action.equalsIgnoreCase("combat")){
+				before = difference.compareTo(((long) this.cooldown) * 1000);
+			}
+		}
+		if (before>=0){
+			return true;
+		}
+		return false;
+	}
+
+	
 	// Thanks to Defxor & Courier for code on how to create an update checking thread
 	// http://dev.bukkit.org/profiles/defxor
 	private void startUpdateThread() {
@@ -293,14 +326,14 @@ public class PvPToggle extends JavaPlugin {
                 public void run() {
                     String checkVersion = updateCheck(version);
                     if(!checkVersion.endsWith(version)) {
-                        log.warning("["+name+"] Found new version: " + checkVersion + " (you have [v" + version + "])");
-                        log.warning("["+name+"] Visit http://dev.bukkit.org/server-mods/" + name + "/ to download!");
+                        log.info("["+name+"] Found new version: " + checkVersion + " (you have [v" + version + "])");
+                        log.info("["+name+"] Visit http://dev.bukkit.org/server-mods/" + name + "/ to download!");
                     }
                 }
             };
         }
         // 400 = 20 seconds from start, then a period according to config (default every 24h)
-        updateId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, updateThread, 400, updateinterval*20);
+        updateId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, updateThread, 200, updateinterval*20);
     }
 
     private void stopUpdateThread() {

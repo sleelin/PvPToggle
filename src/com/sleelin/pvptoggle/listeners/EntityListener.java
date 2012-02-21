@@ -3,13 +3,17 @@ package com.sleelin.pvptoggle.listeners;
 import java.util.GregorianCalendar;
 
 import org.bukkit.ChatColor;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.ThrownPotion;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 
 import com.sleelin.pvptoggle.PvPToggle;
 
@@ -25,6 +29,7 @@ public class EntityListener implements Listener {
 	
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onEntityDamage(EntityDamageEvent event){
+		if (event.isCancelled()) return;
 		if (event.getEntity() instanceof Player){
 			Player player = (Player) event.getEntity();
 			if (event instanceof EntityDamageByEntityEvent){
@@ -50,57 +55,78 @@ public class EntityListener implements Listener {
 				}
 				
 				if (proceed){
-					boolean genabled = plugin.gpvpEnabled();
-					if (!(PvPToggle.worldstatus.get(player.getWorld().getName())) || (!genabled)) {
-						if (!(PvPToggle.worldstatus.get(player.getWorld().getName()))) {
-							damager.sendMessage(ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!");
-						}
-						if (!genabled) {
-							damager.sendMessage(ChatColor.RED + "Global PvP is disabled!");
-						}
-						event.setCancelled(true);
-						return;
-					}
-					if ((plugin.permissionsCheck(player, "pvptoggle.use", true))&&(!plugin.permissionsCheck(player, "pvptoggle.pvp.force", false))){							
-						boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
-						boolean damagerenabled = plugin.pvpEnabled(damager, player.getWorld().getName());
-						if ((!checkWarmup(damager))&&(!(plugin.permissionsCheck(damager, "pvptoggle.pvp.bypasswarmup", false)))){
-							damager.sendMessage(ChatColor.RED + "You only just enabled PvP!");
-							event.setCancelled(true);
-						}
-						if ((plugin.permissionsCheck(damager, "pvptoggle.pvp.autoenable", false))&&(!damagerenabled)){
-							plugin.pvpEnable(damager, damager.getWorld().getName());
-							damagerenabled = true;
-							damager.sendMessage(ChatColor.GOLD + "PvP automatically enabled due to combat!");
-						}
-						if ((!targetenabled)||(!damagerenabled)){
-							String message = null;
-							if (!targetenabled){
-								message = ChatColor.RED + player.getDisplayName() + " has PvP disabled!";
-							}
-							if (!damagerenabled){
-								message = ChatColor.RED + "You have PvP disabled!";
-							}
-							damager.sendMessage(message);
-							event.setCancelled(true);
-						} else {
-							PvPToggle.lastpvp.put(damager, new GregorianCalendar().getTime().getTime());
-							PvPToggle.lastpvp.put(player, new GregorianCalendar().getTime().getTime());
-						}
-					}
+					eventMagic(player, damager, event, "EntityDamage", true);
 				}
 			}			
 			
 		}
 	}
 	
-	private boolean checkWarmup(Player player) {
-		GregorianCalendar cal = new GregorianCalendar();
-		Long difference = cal.getTime().getTime() - PvPToggle.lasttoggle.get(player);
-		int before = difference.compareTo(((long) PvPToggle.warmup) * 1000);
-		if (before>=0){
-			return true;
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void PotionHit(PotionSplashEvent event){
+		if (event.isCancelled()) return;
+		boolean firstdamage = true;
+		ThrownPotion potion = event.getPotion();
+		if (potion.getShooter() instanceof Player){
+			Player damager = (Player) potion.getShooter();
+			for(LivingEntity entity : event.getAffectedEntities()){
+				if (entity instanceof Player){
+					if (!((Player) entity).equals(damager)){
+						eventMagic((Player) entity, damager, event, "PotionSplash", firstdamage);
+						firstdamage = false;
+					}
+				}
+			}
 		}
-		return false;
 	}
+	
+	private void eventMagic(Player player, Player damager, Event event, String type, boolean first){
+		boolean cancellable = false;
+		boolean genabled = plugin.gpvpEnabled();
+		if (!(PvPToggle.worldstatus.get(player.getWorld().getName())) || (!genabled)) {
+			if (!(PvPToggle.worldstatus.get(player.getWorld().getName()))) {
+				if (first) damager.sendMessage(ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!");
+			}
+			if (!genabled) {
+				if (first) damager.sendMessage(ChatColor.RED + "Global PvP is disabled!");
+			}
+			cancellable = true;
+		}
+		if ((plugin.permissionsCheck(player, "pvptoggle.use", true))&&(!plugin.permissionsCheck(player, "pvptoggle.pvp.force", false))){							
+			boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
+			boolean damagerenabled = plugin.pvpEnabled(damager, player.getWorld().getName());
+			if ((!plugin.checkLastAction(damager, "combat"))&&(!(plugin.permissionsCheck(damager, "pvptoggle.pvp.bypasswarmup", false)))){
+				if (first) damager.sendMessage(ChatColor.RED + "You only just enabled PvP!");
+				cancellable = true;
+			}
+			if ((plugin.permissionsCheck(damager, "pvptoggle.pvp.autoenable", false))&&(!damagerenabled)){
+				plugin.pvpEnable(damager, damager.getWorld().getName());
+				damagerenabled = true;
+				damager.sendMessage(ChatColor.GOLD + "PvP automatically enabled due to combat!");
+			}
+			if ((!targetenabled)||(!damagerenabled)){
+				String message = null;
+				if (!targetenabled){
+					message = ChatColor.RED + player.getDisplayName() + " has PvP disabled!";
+				}
+				if (!damagerenabled){
+					message = ChatColor.RED + "You have PvP disabled!";
+				}
+				if (first) damager.sendMessage(message);
+				cancellable = true;
+			} else {
+				plugin.lastaction.put(damager, plugin.new PvPAction(new GregorianCalendar().getTime().getTime(), "combat"));
+				plugin.lastaction.put(player, plugin.new PvPAction(new GregorianCalendar().getTime().getTime(), "combat"));
+			}
+		}
+		if (cancellable){
+			if (type.equalsIgnoreCase("EntityDamage")){
+				((EntityDamageEvent) event).setCancelled(true);
+			} else if (type.equalsIgnoreCase("PotionSplash")) {
+				((PotionSplashEvent) event).setCancelled(true);
+			}
+		}
+	}
+	
+	
 }
