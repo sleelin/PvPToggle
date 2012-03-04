@@ -328,7 +328,7 @@ public class PvPToggle extends JavaPlugin {
 	 * @param player - who performed the action
 	 * @param action - the action that was performed
 	 */
-	protected void setLastAction(Player player, String action) {
+	public void setLastAction(Player player, String action) {
 		lastaction.put(player, new PvPAction(new GregorianCalendar().getTime().getTime(), action));
 	}
 	
