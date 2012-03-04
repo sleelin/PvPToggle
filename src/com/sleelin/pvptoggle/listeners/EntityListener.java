@@ -1,7 +1,5 @@
 package com.sleelin.pvptoggle.listeners;
 
-import java.util.GregorianCalendar;
-
 import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -48,7 +46,7 @@ public class EntityListener implements Listener {
 					proceed = true;
 				}
 				
-				if (PvPToggle.citizensEnabled){
+				if ((Boolean) plugin.getGlobalSetting("citizens")){
 					if (CitizensManager.isNPC(player)){
 						proceed = false;
 					}
@@ -82,9 +80,9 @@ public class EntityListener implements Listener {
 	
 	private void eventMagic(Player player, Player damager, Event event, String type, boolean first){
 		boolean cancellable = false;
-		boolean genabled = plugin.gpvpEnabled();
-		if (!(PvPToggle.worldstatus.get(player.getWorld().getName())) || (!genabled)) {
-			if (!(PvPToggle.worldstatus.get(player.getWorld().getName()))) {
+		boolean genabled = (Boolean) plugin.getGlobalSetting("enabled");
+		if (!(plugin.getWorldStatus(player.getWorld().getName())) || (!genabled)) {
+			if (!(plugin.getWorldStatus(player.getWorld().getName()))) {
 				if (first) damager.sendMessage(ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!");
 			}
 			if (!genabled) {
@@ -93,14 +91,14 @@ public class EntityListener implements Listener {
 			cancellable = true;
 		}
 		if ((plugin.permissionsCheck(player, "pvptoggle.use", true))&&(!plugin.permissionsCheck(player, "pvptoggle.pvp.force", false))){							
-			boolean targetenabled = plugin.pvpEnabled(player, player.getWorld().getName());
-			boolean damagerenabled = plugin.pvpEnabled(damager, player.getWorld().getName());
-			if ((!plugin.checkLastAction(damager, "combat"))&&(!(plugin.permissionsCheck(damager, "pvptoggle.pvp.bypasswarmup", false)))){
+			boolean targetenabled = plugin.checkPlayerStatus(player, player.getWorld().getName());
+			boolean damagerenabled = plugin.checkPlayerStatus(damager, player.getWorld().getName());
+			if ((!plugin.checkLastAction(damager, "combat", damager.getWorld().getName()))&&(!(plugin.permissionsCheck(damager, "pvptoggle.pvp.bypasswarmup", false)))){
 				if (first) damager.sendMessage(ChatColor.RED + "You only just enabled PvP!");
 				cancellable = true;
 			}
 			if ((plugin.permissionsCheck(damager, "pvptoggle.pvp.autoenable", false))&&(!damagerenabled)){
-				plugin.pvpEnable(damager, damager.getWorld().getName());
+				plugin.setPlayerStatus(damager, damager.getWorld().getName(), true);
 				damagerenabled = true;
 				damager.sendMessage(ChatColor.GOLD + "PvP automatically enabled due to combat!");
 			}
@@ -115,8 +113,8 @@ public class EntityListener implements Listener {
 				if (first) damager.sendMessage(message);
 				cancellable = true;
 			} else {
-				plugin.lastaction.put(damager, plugin.new PvPAction(new GregorianCalendar().getTime().getTime(), "combat"));
-				plugin.lastaction.put(player, plugin.new PvPAction(new GregorianCalendar().getTime().getTime(), "combat"));
+				plugin.setLastAction(damager, "combat");
+				plugin.setLastAction(player, "combat");
 			}
 		}
 		if (cancellable){

@@ -1,7 +1,6 @@
 package com.sleelin.pvptoggle.listeners;
 
-import java.util.GregorianCalendar;
-
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -21,15 +20,8 @@ public class PlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerJoin(PlayerJoinEvent event){
 		Player player = (Player) event.getPlayer();
-		if (!plugin.alreadyLoaded(player)){
-			for (String worldname : PvPToggle.worldnames){
-				if (!PvPToggle.defaultenabled.get(worldname)){
-					plugin.pvpDisable(player, worldname);
-				} else {
-					plugin.pvpEnable(player, worldname);
-				}
-			}
-			plugin.lastaction.put(player, plugin.new PvPAction(new GregorianCalendar().getTime().getTime()-(1000*plugin.cooldown)*(1000*plugin.warmup),"login"));
+		for (World world : plugin.getServer().getWorlds()){
+			plugin.checkPlayerStatus(player, world.getName());
 		}
 	}
 

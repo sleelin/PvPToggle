@@ -7,6 +7,18 @@ Supports multiple worlds when defined in the config file.
 Supports SuperPerms and legacy Permissions plugin.
 
 Changelog:
+v2.0.0:
+- Fixed update checker bug
+- Rewrote config handling
+- Rewrote config file format (autoupdates to new format)
+- Combined gpvp and pvp into single command
+- Added proper world command 
+- Rewrote help command, now in more detail
+- Rewrote API
+- Added ability to set what command to use for the plugin
+- Added toggle on command use without argument
+- Added reset command
+- Made memory use improvements
 v1.1.0:
 - Added automatic update checker
 - Fixed sending commands from console
