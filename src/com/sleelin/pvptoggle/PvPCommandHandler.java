@@ -1,5 +1,7 @@
 package com.sleelin.pvptoggle;
 
+import static com.sk89q.worldguard.bukkit.BukkitUtil.toVector;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.ChatColor;
@@ -8,6 +10,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.StateFlag.State;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 
 public class PvPCommandHandler implements CommandExecutor {
@@ -40,7 +48,7 @@ public class PvPCommandHandler implements CommandExecutor {
 				if (player != null){
 					togglePlayer(sender, player, player.getWorld().getName(), checkNewValue(args[0]));
 				} else {
-					sender.sendMessage(ChatColor.RED + "Cannot run this command from the console!");
+					PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.CONSOLE_ERROR);
 				}
 				break;
 			case 2:
@@ -192,7 +200,7 @@ public class PvPCommandHandler implements CommandExecutor {
 			}
 		} else {
 			// found no matches
-			if (notify) sender.sendMessage(ChatColor.RED + "Couldn't find a player matching that name!");
+			if (notify) PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.PLAYER_NOT_FOUND);
 		};
 		
 		return (Player) null;
@@ -209,7 +217,7 @@ public class PvPCommandHandler implements CommandExecutor {
 		// check for permission to view own or other player's status
 		if (!(((plugin.permissionsCheck(sender, "pvptoggle.self.status", true))&&(sender.getName().equalsIgnoreCase(target.getName()))) 
 				|| (plugin.permissionsCheck(sender, "pvptoggle.other.status", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true)))){
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
 			return;
 		}
 		
@@ -217,24 +225,24 @@ public class PvPCommandHandler implements CommandExecutor {
 			if (sender.getName().equalsIgnoreCase(target.getName())){
 				// report personal PvP status
 				if (plugin.permissionsCheck(target, "pvptoggle.pvp.force", false)){
-					sender.sendMessage(ChatColor.GOLD + "PvP Status in " + world + ": forced");
-				} else if (plugin.permissionsCheck(target, "pvptoggle.pvp.force", false)){
-					sender.sendMessage(ChatColor.GOLD + "PvP Status in " + world + ": denied");
+					PvPLocalisation.display(sender, "", world, PvPLocalisation.Strings.PVP_FORCED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_STATUS);
+				} else if (plugin.permissionsCheck(target, "pvptoggle.pvp.deny", false)){
+					PvPLocalisation.display(sender, "", world, PvPLocalisation.Strings.PVP_DENIED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_STATUS);
 				} else if (plugin.checkPlayerStatus(target, target.getWorld().getName())){
-					sender.sendMessage(ChatColor.GOLD + "PvP Status in " + world + ": on");
+					PvPLocalisation.display(sender, "", world, PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_STATUS);
 				} else {
-					sender.sendMessage(ChatColor.GOLD + "PvP Status in " + world + ": off");
+					PvPLocalisation.display(sender, "", world, PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_STATUS);
 				}
 			} else {
 				// report someone else's PvP status
 				if (plugin.permissionsCheck(target, "pvptoggle.pvp.force", false)){
-					sender.sendMessage(ChatColor.GOLD + target.getDisplayName() + " is forced to PvP in " + world);
+					PvPLocalisation.display(sender, target.getName(), world, PvPLocalisation.Strings.PVP_FORCED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_OTHER_STATUS);
 				} else if (plugin.permissionsCheck(target, "pvptoggle.pvp.deny", false)){
-					sender.sendMessage(ChatColor.GOLD + target.getDisplayName() + " is denied PvP in " + world);
+					PvPLocalisation.display(sender, target.getName(), world, PvPLocalisation.Strings.PVP_DENIED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_OTHER_STATUS);
 				} else if (plugin.checkPlayerStatus(target, world)){
-					sender.sendMessage(ChatColor.GOLD + target.getDisplayName() + " has PvP on in " + world);
+					PvPLocalisation.display(sender, target.getName(), world, PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_OTHER_STATUS);
 				} else {
-					sender.sendMessage(ChatColor.GOLD + target.getDisplayName() + " has PvP off in " + world);
+					PvPLocalisation.display(sender, target.getName(), world, PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_OTHER_STATUS);
 				}
 			}
 		}
@@ -248,13 +256,13 @@ public class PvPCommandHandler implements CommandExecutor {
 		if (plugin.permissionsCheck(sender, "pvptoggle.global.status", true)){
 			
 			if ((Boolean) plugin.getGlobalSetting("enabled")){
-				sender.sendMessage(ChatColor.GOLD + "Global PvP Status: on");
+				PvPLocalisation.display(sender, "", "", PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_GLOBAL_STATUS);
 			} else {
-				sender.sendMessage(ChatColor.GOLD + "Global PvP Status: off");
+				PvPLocalisation.display(sender, "", "", PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_GLOBAL_STATUS);
 			}
 			
 		} else {
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
 		}
 		
 	}	
@@ -269,14 +277,14 @@ public class PvPCommandHandler implements CommandExecutor {
 			
 			if (worldname != null){
 				if (plugin.getWorldStatus(worldname)){
-					sender.sendMessage(ChatColor.GOLD + "PvP Status in world " + worldname + ": on");
+					PvPLocalisation.display(sender, "", worldname, PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_WORLD_STATUS);
 				} else {
-					sender.sendMessage(ChatColor.GOLD + "PvP Status in world " + worldname + ": off");
+					PvPLocalisation.display(sender, "", worldname, PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PLAYER_CHECK_WORLD_STATUS);
 				}
 			}
 			
 		} else {
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
 		}
 
 	}
@@ -290,45 +298,49 @@ public class PvPCommandHandler implements CommandExecutor {
 	 */
 	private void togglePlayer(CommandSender sender, Player player, String worldname, boolean newval) {
 		
-		// check for permission to toggle own or other player's status
-		if (!(((plugin.permissionsCheck(sender, "pvptoggle.self.toggle", true))&&(sender.getName().equalsIgnoreCase(player.getName()))) 
-				|| (plugin.permissionsCheck(sender, "pvptoggle.other.toggle", true)))){
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
-			return;	// no permission, return out
-		}
-		
 		if ((player == null)||(worldname == null)){
 			// target not found, return out
 			return;
 		}
+				
+		// check for permission to toggle own or other player's status
+		if (!(((plugin.permissionsCheck(sender, "pvptoggle.self.toggle", true))&&(sender.getName().equalsIgnoreCase(player.getName()))) 
+				|| (plugin.permissionsCheck(sender, "pvptoggle.other.toggle", true)))){
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
+			return;	// no permission, return out
+		}
+		
 		
 		if (sender.getName().equalsIgnoreCase(player.getName())){
 			// if sender is the target
+			if (!WorldGuardRegionCheck(player, "this")) return;	// no permission to toggle in this region
+			
 			if (newval){
 				// if enabling
 				plugin.setPlayerStatus(player, player.getWorld().getName(), true);
-				player.sendMessage(ChatColor.GOLD + "PvP Enabled in " + player.getWorld().getName() + "!");
+				PvPLocalisation.display(sender, "", player.getWorld().getName(), PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PVP_PLAYER_SELF_TOGGLE);
 				plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " enabled pvp");
 				plugin.setLastAction(player, "toggle");
 			} else if (!(newval)){
 				// if disabling
 				if (plugin.checkLastAction(player, "toggle", player.getWorld().getName())){
 					plugin.setPlayerStatus(player, player.getWorld().getName(), false);
-					player.sendMessage(ChatColor.GOLD + "PvP Disabled in " + player.getWorld().getName() + "!");
+					PvPLocalisation.display(sender, "", player.getWorld().getName(), PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PVP_PLAYER_SELF_TOGGLE);
 					plugin.log.info("[PvPToggle] Player " + player.getDisplayName() + " disabled pvp");
 				} else {
-					player.sendMessage(ChatColor.RED + "You were just in combat, can't disable PvP yet!");
+					PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.PLAYER_COOLDOWN);
 				}
 			}
 		} else {
 			// if the target is another player
+			if (!WorldGuardRegionCheck(player, player.getName()+"'s current ")) return;	// no permission to toggle in this region
 			
 			// set message details
 			String message = null;
 			if (newval){
-				message = "enabled";
+				message = PvPLocalisation.Strings.PVP_ENABLED.toString();
 			} else {
-				message = "disabled";
+				message = PvPLocalisation.Strings.PVP_DISABLED.toString();
 			}
 			
 			// toggle
@@ -337,18 +349,43 @@ public class PvPCommandHandler implements CommandExecutor {
 				for (World world : plugin.getServer().getWorlds()){
 					plugin.setPlayerStatus(player, world.getName(), newval);
 				}
-				player.sendMessage(ChatColor.GOLD + "PvP " + message + " across all worlds by " + sender.getName() + "!");
-				sender.sendMessage(ChatColor.GOLD + "Successfully " + message + " PvP for player " + player.getName() + " across all worlds!");
+				PvPLocalisation.display(player, "", "", message, PvPLocalisation.Strings.PVP_PLAYER_GLOBAL_TOGGLE);
+				PvPLocalisation.display(sender, player.getName(), "", message, PvPLocalisation.Strings.PVP_PLAYER_GLOBAL_TOGGLE_SENDER);
 			} else {
 				// if toggling specific world
 				plugin.setPlayerStatus(player, worldname, newval);
-				player.sendMessage(ChatColor.GOLD + "PvP " + message + " in world " + worldname + " by " + sender.getName() + "!");
-				sender.sendMessage(ChatColor.GOLD + "Successfully " + message + " PvP for player " + player.getName() + " in world " + worldname + "!");
+				PvPLocalisation.display(player, "", worldname, message, PvPLocalisation.Strings.PVP_PLAYER_OTHER_TOGGLE);
+				PvPLocalisation.display(sender, player.getName(), worldname, message, PvPLocalisation.Strings.PVP_PLAYER_OTHER_TOGGLE_SENDER);
 			}
 			plugin.setLastAction(player, "toggle");
 		}
 	}
 	
+	/**
+	 * Checks if a player is currently in a WorldGuard region with the PVP flag set
+	 * @param player - who to check for
+	 * @return false if in region with flag set, otherwise true
+	 */
+	private boolean WorldGuardRegionCheck(Player player, String target) {
+		if ((Boolean) plugin.getGlobalSetting("worldguard")){
+			WorldGuardPlugin worldGuard = (WorldGuardPlugin) plugin.getServer().getPluginManager().getPlugin("WorldGuard");
+			ApplicableRegionSet set = worldGuard.getRegionManager(player.getWorld()).getApplicableRegions(toVector(player.getLocation().getBlock()));
+			for (ProtectedRegion region : set){
+				for (Flag<?> flag : region.getFlags().keySet()){
+					if (flag.getName().equals("pvp")){
+						if (region.getFlag(flag).equals(State.ALLOW)){
+							PvPLocalisation.display(player, target, null, PvPLocalisation.Strings.PVP_FORCED.toString(), PvPLocalisation.Strings.WORLDGUARD_TOGGLE_DENIED);
+						} else if (region.getFlag(flag).equals(State.DENY)){
+							PvPLocalisation.display(player, target, null, PvPLocalisation.Strings.PVP_DENIED.toString(), PvPLocalisation.Strings.WORLDGUARD_TOGGLE_DENIED);
+						}
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * Toggles whether PvP is allowed or denied in a world
 	 * @param sender
@@ -356,20 +393,18 @@ public class PvPCommandHandler implements CommandExecutor {
 	 * @param newval
 	 */
 	private void toggleWorld(CommandSender sender, String targetworld, boolean newval){
-		if (!(plugin.permissionsCheck(sender, "pvptoggle.world.toggle", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true))){
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+		if (!((plugin.permissionsCheck(sender, "pvptoggle.world.toggle", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true)))){
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
 			return;	// no permission, return out
 		}
 		
 		if (targetworld != null){
 			plugin.setWorldStatus(targetworld, newval);
-			String message;
 			if (newval){
-				message = ChatColor.GOLD +  "Successfully enabled world-wide PvP in " + targetworld;
+				PvPLocalisation.display(sender, "", targetworld, PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PVP_WORLD_TOGGLE_SENDER);
 			} else {
-				message = ChatColor.GOLD + "Successfully disabled world-wide PvP in " + targetworld;
+				PvPLocalisation.display(sender, "", targetworld, PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PVP_WORLD_TOGGLE_SENDER);
 			}
-			sender.sendMessage(message);
 		}
 	}
 	
@@ -379,19 +414,17 @@ public class PvPCommandHandler implements CommandExecutor {
 	 * @param newval - what to toggle it to
 	 */
 	private void toggleGlobal(CommandSender sender, boolean newval) {
-		if (!(plugin.permissionsCheck(sender, "pvptoggle.global.toggle", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true))){
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+		if (!((plugin.permissionsCheck(sender, "pvptoggle.global.toggle", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true)))){
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
 			return;	// no permission, return out
 		}
 		
 		plugin.toggleGlobalStatus(newval);
-		String message = null;
 		if (newval){
-			message = ChatColor.GOLD + "Successfully enabled global PvP!";
+			PvPLocalisation.display(sender, "", "", PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PVP_GLOBAL_TOGGLE_SENDER);
 		} else {
-			message = ChatColor.GOLD +  "Successfully disabled global PvP!";
+			PvPLocalisation.display(sender, "", "", PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PVP_GLOBAL_TOGGLE_SENDER);
 		}
-		sender.sendMessage(message);
 	}
 	
 	/**
@@ -401,15 +434,15 @@ public class PvPCommandHandler implements CommandExecutor {
 	 * @param worldname - what world to reset in
 	 */
 	private void resetPlayer(CommandSender sender, Player player, String worldname) {
-		if (!(((plugin.permissionsCheck(sender, "pvptoggle.self.reset", true))&&(sender.getName().equalsIgnoreCase(player.getName()))) 
-				|| (plugin.permissionsCheck(sender, "pvptoggle.other.reset", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true)))){
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
-			return;	// no permission, return out
-		}
-		
 		if ((player == null)||(worldname == null)){
 			// invalid player, exit
 			return;
+		}
+		
+		if (!(((plugin.permissionsCheck(sender, "pvptoggle.self.reset", true))&&(sender.getName().equalsIgnoreCase(player.getName()))) 
+				|| (plugin.permissionsCheck(sender, "pvptoggle.other.reset", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true)))){
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
+			return;	// no permission, return out
 		}
 		
 		if (worldname.equalsIgnoreCase("*")){
@@ -418,14 +451,14 @@ public class PvPCommandHandler implements CommandExecutor {
 				plugin.setPlayerStatus(player, world.getName(), plugin.getWorldDefault(world.getName()));
 			}
 			plugin.setLastAction(player, "toggle");
-			player.sendMessage(ChatColor.GOLD + "PvP status reset to login default across all worlds by "+sender.getName());
-			sender.sendMessage(ChatColor.GOLD + "Successfully reset PvP status of "+player.getName()+" to default!");
+			PvPLocalisation.display(player, "", "", "", PvPLocalisation.Strings.PVP_RESET_PLAYER_GLOBAL);
+			PvPLocalisation.display(sender, player.getName(), "", "", PvPLocalisation.Strings.PVP_RESET_PLAYER_GLOBAL_SENDER);
 		} else {
 			// if resetting in specific world
 			plugin.setPlayerStatus(player, worldname, plugin.getWorldDefault(worldname));
 			plugin.setLastAction(player, "toggle");
-			player.sendMessage(ChatColor.GOLD + "PvP status reset to login default in world " + worldname + " by " + sender.getName());
-			sender.sendMessage(ChatColor.GOLD + "Successfully reset PvP status of " + player.getName() + " to default in world "+worldname+"!");
+			PvPLocalisation.display(player, "", worldname, "", PvPLocalisation.Strings.PVP_RESET_PLAYER);
+			PvPLocalisation.display(sender, player.getName(), worldname, "", PvPLocalisation.Strings.PVP_RESET_PLAYER_SENDER);
 		}
 		
 	}
@@ -438,29 +471,22 @@ public class PvPCommandHandler implements CommandExecutor {
 	 */
 	private void resetWorld(CommandSender sender, String worldname, boolean newval) {
 		
-		if (!(plugin.permissionsCheck(sender, "pvptoggle.world.reset", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true))){
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+		if (!((plugin.permissionsCheck(sender, "pvptoggle.world.reset", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true)))){
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
 			return;	// no permission, return out
 		}
 		
 		Player players[] = plugin.getServer().getOnlinePlayers();	// get list of online players
-		String message;
-		
-		// set preliminary message
-		if (newval){
-			message = "enabled";
-		} else {
-			message = "disabled";
-		}
 		
 		// if toggle all players in specific world
 		for (Player p : players){
 			plugin.setPlayerStatus(p, worldname, newval);
 			plugin.setLastAction(p, "toggle");
-			p.sendMessage(ChatColor.GOLD + "PvP " + message + " in world " + worldname + " by " + sender.getName() + "!");
+			if (newval) PvPLocalisation.display(p, "", worldname, PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PVP_RESET_WORLD);
+			else PvPLocalisation.display(p, "", worldname, PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PVP_RESET_WORLD);
 		}
-		message = "Successfully reset all players PvP to " + message + " in world " + worldname;	
-		sender.sendMessage(ChatColor.GOLD + message);
+		if (newval) PvPLocalisation.display(sender, "", worldname, PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.PVP_RESET_WORLD_SENDER); 
+		else  PvPLocalisation.display(sender, "", worldname, PvPLocalisation.Strings.PVP_DISABLED.toString(), PvPLocalisation.Strings.PVP_RESET_WORLD_SENDER);
 	}
 	
 	/**
@@ -468,8 +494,8 @@ public class PvPCommandHandler implements CommandExecutor {
 	 * @param sender
 	 */
 	private void resetGlobal(CommandSender sender){
-		if (!(plugin.permissionsCheck(sender, "pvptoggle.global.reset", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true))){
-			sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+		if (!((plugin.permissionsCheck(sender, "pvptoggle.global.reset", true)) || (plugin.permissionsCheck(sender, "pvptoggle.admin", true)))){
+			PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.NO_PERMISSION);
 			return;	// no permission, return out
 		}
 		
@@ -481,9 +507,9 @@ public class PvPCommandHandler implements CommandExecutor {
 				plugin.setPlayerStatus(p, world.getName(), plugin.getWorldDefault(world.getName()));	
 			}
 			plugin.setLastAction(p, "toggle");
-			p.sendMessage(ChatColor.GOLD + "PvP globally reset across all worlds by " + sender.getName() + "!");
+			PvPLocalisation.display(p, "", "", "", PvPLocalisation.Strings.PVP_RESET_GLOBAL);
 		}	
-		sender.sendMessage(ChatColor.GOLD + "Successfully set all players PvP across all worlds!");
+		PvPLocalisation.display(sender, "", "", "", PvPLocalisation.Strings.PVP_RESET_GLOBAL_SENDER);
 
 	}
 	
@@ -583,7 +609,7 @@ public class PvPCommandHandler implements CommandExecutor {
 	 */
 	private String isWorld(CommandSender sender, String worldname, boolean notify){
 		String output = plugin.checkWorldName(worldname);
-		if (output == null) if (notify) sender.sendMessage(ChatColor.RED + "No world matching that name!");
+		if (output == null) if (notify) PvPLocalisation.display(sender, null, null, null, PvPLocalisation.Strings.WORLD_NOT_FOUND);
 		return output;
 	}
 	

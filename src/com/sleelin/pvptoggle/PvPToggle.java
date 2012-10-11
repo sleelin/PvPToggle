@@ -21,6 +21,7 @@ import org.w3c.dom.NodeList;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sleelin.pvptoggle.listeners.EntityListener;
 import com.sleelin.pvptoggle.listeners.PlayerListener;
 import com.sleelin.pvptoggle.listeners.WorldListener;
@@ -43,7 +44,7 @@ public class PvPToggle extends JavaPlugin {
 	private static String name;
 	
 	// Legacy Permissions handler
-	public static PermissionHandler permissionHandler;
+	private static PermissionHandler permissionHandler;
 		
 	// Instantiate listeners
 	private final PlayerListener playerListener = new PlayerListener(this);
@@ -75,14 +76,11 @@ public class PvPToggle extends JavaPlugin {
 	}
 	
 	public void onEnable(){
-		
 		// Load settings
 		log.info("[" + this.getDescription().getName() + "] Loading...");
 		this.loadProcedure();
-		
-		// Register command handlers
-		getCommand((String) this.globalsettings.get("command")).setExecutor(new PvPCommandHandler(this));
-		
+		PvPLocalisation.loadProcedure(this);
+				
 		// Register event listeners
 		this.getServer().getPluginManager().registerEvents(this.playerListener, this);
 		this.getServer().getPluginManager().registerEvents(this.entityListener, this);
@@ -93,12 +91,14 @@ public class PvPToggle extends JavaPlugin {
 		PvPToggle.name = this.getDescription().getName();
 		this.startUpdateThread();
 		
+		// Register command handlers
+		if ((((String)this.globalsettings.get("command")).equalsIgnoreCase("tpvp"))||((String)this.globalsettings.get("command")).equalsIgnoreCase("pvpt")){
+			getCommand((String) this.globalsettings.get("command")).setExecutor(new PvPCommandHandler(this));
+		} else {
+			getCommand("pvp").setExecutor(new PvPCommandHandler(this));
+		}
+		
 		System.out.println("["+ this.getDescription().getName() + "] v"+this.getDescription().getVersion()+" enabled!");
-	}
-	
-	public void onLoad(){
-		worlds.clear();
-		globalsettings.clear();
 	}
 	
 	public void onDisable(){
@@ -154,6 +154,7 @@ public class PvPToggle extends JavaPlugin {
 		globalsettings.put("updateinterval", this.getConfig().getInt("plugin.updateinterval", 21600));
 		globalsettings.put("command", this.getConfig().getString("plugin.command", "pvp"));
 		globalsettings.put("citizens", false);
+		globalsettings.put("worldguard", false);
 		
 		// Load each world
 		for (World world : this.getServer().getWorlds()){
@@ -181,6 +182,12 @@ public class PvPToggle extends JavaPlugin {
 		if (this.getServer().getPluginManager().getPlugin("Citizens") != null){
 			globalsettings.put("citizens", true);
 			log.info("[" + this.getDescription().getName() + "] Citizens Plugin detected");
+		}
+		
+		// Set up WorldGuard hooks
+		if ((this.getServer().getPluginManager().getPlugin("WorldGuard") != null)&&(this.getServer().getPluginManager().getPlugin("WorldGuard") instanceof WorldGuardPlugin)){
+			globalsettings.put("worldguard", true);
+			log.info("[" + this.getDescription().getName() + "] WorldGuard Plugin detected");
 		}
 	}
 	
@@ -215,7 +222,7 @@ public class PvPToggle extends JavaPlugin {
 	 * @param world - name of the world as a string
 	 * @param enabled - whether or not the world should be enabled or disabled 
 	 */
-	public void setWorldStatus(String world, boolean enabled) {
+	protected void setWorldStatus(String world, boolean enabled) {
 		worlds.get(world).enabled = enabled;
 	}
 		
@@ -247,7 +254,7 @@ public class PvPToggle extends JavaPlugin {
 	public String checkWorldName(String targetworld){
 		String output = null;
 		for (World world : this.getServer().getWorlds()){
-			if (world.getName().contains(targetworld.toLowerCase())){
+			if (world.getName().toLowerCase().contains(targetworld.toLowerCase())){
 				output = world.getName();
 				break;
 			}
@@ -311,7 +318,7 @@ public class PvPToggle extends JavaPlugin {
 	 * Toggles whether global PvP is enabled or disabled using private setGlobalSetting function 
 	 * @param newval
 	 */
-	public void toggleGlobalStatus(Boolean newval){
+	protected void toggleGlobalStatus(Boolean newval){
 		setGlobalSetting("enabled", (Object) newval);
 	}
 	

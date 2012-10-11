@@ -1,65 +1,87 @@
 name: PvPToggle
 main: com.sleelin.pvptoggle.PvPToggle
-version: 2.0.0
+version: 2.2.0
 author: Sleelin
 description: Allows players to decide whether or not they want PvP enabled
 commands:
     pvp:
-        description: Toggles whether player can take damage from another player
-        uasge: |
-            /pvp [on|off|enable|disable]
+        description: main command used by the plugin
+    pvpt:
+        description: alternate command used by the plugin
     tpvp:
-        description: Toggles whether player can take damage from another player
-        uasge: |
-            /pvpt [on|off|enable|disable]
-    gpvp:
-        description: Toggles global pvp status
-        uasge: |
-            /gpvp [on|off|enable|disable]
+        description: alternate command used by the plugin
 permissions:
     pvptoggle:
         description: Gives someone full use of the PvPToggle plugin
         default: false
         children:
             pvptoggle.use: true
-            pvptoggle.command: true
-            pvptoggle.gcommand: true
+            pvptoggle.self: true
+            pvptoggle.other: true
+            pvptoggle.world: true
+            pvptoggle.global: true
     pvptoggle.use:
         description: Allows players to be affected by PvPToggle
         default: false
-    pvptoggle.command:
-        description: Allows players to use /pvp commands
+    pvptoggle.self:
+        description: Allows players to use /pvp command on themselves
         default: false
         children:
-            pvptoggle.command.toggle: true
-            pvptoggle.command.status: true
-            pvptoggle.command.admin: true
-    pvptoggle.command.toggle:
+            pvptoggle.self.toggle: true
+            pvptoggle.self.status: true
+    pvptoggle.self.toggle:
         description: Whether or not a player is allowed to toggle their own PvP
         default: false
-    pvptoggle.command.status:
+    pvptoggle.self.status:
         description: Whether a player can check their own PvP status in a world
         default: false
-    pvptoggle.command.admin:
-        description: Allows a player to toggle the PvP status of any other player
-        default: false
-    pvptoggle.admin:
-        description: Allows a player to toggle the PvP status of any other player
-        default: false
-    pvptoggle.gcommand:
-        description: Allows players to use /gpvp commands
+    pvptoggle.other:
+        description: Allows players to use /pvp command on others
         default: false
         children:
-            pvptoggle.gcommand.admin: true
-            pvptoggle.gcommand.status: true
-    pvptoggle.gcommand.status:
-        description: Allows players to check global PvP status
+            pvptoggle.other.toggle: true
+            pvptoggle.other.status: true
+            pvptoggle.other.reset: true
+    pvptoggle.other.toggle:
+        description: Whether or not a player is allowed to toggle someone else's PvP
         default: false
-    pvptoggle.gcommand.admin:
-        description: Allows players to toggle global or world-specific PvP
+    pvptoggle.other.status:
+        description: Whether a player can check someone else's PvP status
         default: false
-    pvptoggle.gadmin:
-        description: Allows players to toggle global or world-specific PvP
+    pvptoggle.other.reset:
+        description: Whether a player can reset someone else's PvP status to default
+        default: false
+    pvptoggle.world:
+        description: Allows players to modify world-specific PvP
+        default: false
+        children:
+            pvptoggle.world.toggle: true
+            pvptoggle.world.status: true
+            pvptoggle.world.reset: true
+    pvptoggle.world.toggle:
+        description: Whether or not a player is allowed to toggle world-wide PvP
+        default: false
+    pvptoggle.world.status:
+        description: Whether a player can check a world's PvP status
+        default: false
+    pvptoggle.world.reset:
+        description: Whether a player can reset PvP for all players in a world
+        default: false
+    pvptoggle.global:
+        description: Allows players to modify server-wide global PvP
+        default: false
+        children:
+            pvptoggle.global.toggle: true
+            pvptoggle.global.status: true
+            pvptoggle.global.reset: true
+    pvptoggle.global.toggle:
+        description: Whether or not a player is allowed to toggle server-wide PvP
+        default: false
+    pvptoggle.global.status:
+        description: Whether a player can check server-wide PvP status
+        default: false
+    pvptoggle.global.reset:
+        description: Whether a player can reset server-wide PvP status to default in all worlds
         default: false
     pvptoggle.pvp:
         description: SuperPerms is fucking retarded
@@ -77,6 +99,18 @@ permissions:
     pvptoggle.pvp.autoenable:
         description: Automatically enable PvP on combat
         default: false
-    pvptoggle.pvp.bypasswarmup:
+    pvptoggle.pvp.bypass:
+        description: Bypass the cooldown period of player PvPing
+        default: false
+        children:
+            pvptoggle.pvp.bypass.warmup: true
+            pvptoggle.pvp.bypass.cooldown: true
+    pvptoggle.pvp.bypass.warmup:
         description: Bypass the warmup period of player PvPing
+        default: false
+    pvptoggle.pvp.bypass.cooldown:
+        description: Bypass the cooldown period of player PvPing
+        default: false
+    pvptoggle.admin:
+        description: Allows a player to toggle the PvP status of any other player or world
         default: false

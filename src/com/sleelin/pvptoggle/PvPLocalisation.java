@@ -67,6 +67,9 @@ public class PvPLocalisation {
 		PVP_RESET_WORLD_SENDER("&6Successfully reset all players PvP to %status% in world %world%"),
 		PVP_RESET_GLOBAL_SENDER("&6Successfully reset all players PvP across all worlds!"),
 		
+		WORLDGUARD_REGION_ENTERED("&6Forced PvP %status% region entered"),
+		WORLDGUARD_TOGGLE_DENIED("&cPvP is %status% in %target% region!"),
+		
 		WORLD_NOT_FOUND("&cNo world matching that name!");
 
 	    private Strings(final String text) {

@@ -1,6 +1,5 @@
 package com.sleelin.pvptoggle.listeners;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -13,9 +12,11 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 
+import com.sleelin.pvptoggle.PvPLocalisation;
+import com.sleelin.pvptoggle.PvPLocalisation.Strings;
 import com.sleelin.pvptoggle.PvPToggle;
 
-import net.citizensnpcs.api.CitizensManager;
+import net.citizensnpcs.api.CitizensAPI;
 
 public class EntityListener implements Listener {
 	
@@ -47,7 +48,7 @@ public class EntityListener implements Listener {
 				}
 				
 				if ((Boolean) plugin.getGlobalSetting("citizens")){
-					if (CitizensManager.isNPC(player)){
+					if (CitizensAPI.getNPCRegistry().isNPC(player)){
 						proceed = false;
 					}
 				}
@@ -83,34 +84,34 @@ public class EntityListener implements Listener {
 		boolean genabled = (Boolean) plugin.getGlobalSetting("enabled");
 		if (!(plugin.getWorldStatus(player.getWorld().getName())) || (!genabled)) {
 			if (!(plugin.getWorldStatus(player.getWorld().getName()))) {
-				if (first) damager.sendMessage(ChatColor.RED + "PvP is disabled in world " + player.getWorld().getName() + "!");
+				if (first) PvPLocalisation.display(damager, "", player.getWorld().getName(), "", PvPLocalisation.Strings.PVP_DENY_WORLD);
 			}
 			if (!genabled) {
-				if (first) damager.sendMessage(ChatColor.RED + "Global PvP is disabled!");
+				if (first) PvPLocalisation.display(damager, "", "", "", PvPLocalisation.Strings.PVP_DENY_GLOBAL);
 			}
 			cancellable = true;
 		}
-		if ((plugin.permissionsCheck(player, "pvptoggle.use", true))&&(!plugin.permissionsCheck(player, "pvptoggle.pvp.force", false))){							
+		if (!plugin.permissionsCheck(player, "pvptoggle.pvp.force", false)){							
 			boolean targetenabled = plugin.checkPlayerStatus(player, player.getWorld().getName());
 			boolean damagerenabled = plugin.checkPlayerStatus(damager, player.getWorld().getName());
 			if ((!plugin.checkLastAction(damager, "combat", damager.getWorld().getName()))&&(!(plugin.permissionsCheck(damager, "pvptoggle.pvp.bypasswarmup", false)))){
-				if (first) damager.sendMessage(ChatColor.RED + "You only just enabled PvP!");
+				if (first) PvPLocalisation.display(damager, "", "", "", PvPLocalisation.Strings.PLAYER_WARMUP); 
 				cancellable = true;
 			}
 			if ((plugin.permissionsCheck(damager, "pvptoggle.pvp.autoenable", false))&&(!damagerenabled)){
 				plugin.setPlayerStatus(damager, damager.getWorld().getName(), true);
 				damagerenabled = true;
-				damager.sendMessage(ChatColor.GOLD + "PvP automatically enabled due to combat!");
+				PvPLocalisation.display(damager, "", "", "", PvPLocalisation.Strings.PLAYER_AUTOENABLE);
 			}
 			if ((!targetenabled)||(!damagerenabled)){
-				String message = null;
+				Strings message = null;
 				if (!targetenabled){
-					message = ChatColor.RED + player.getDisplayName() + " has PvP disabled!";
+					message = PvPLocalisation.Strings.PVP_DENY_OPPONENT;
 				}
 				if (!damagerenabled){
-					message = ChatColor.RED + "You have PvP disabled!";
+					message = PvPLocalisation.Strings.PVP_DENY_DISABLED;
 				}
-				if (first) damager.sendMessage(message);
+				if (first) PvPLocalisation.display(damager, player.getName(), player.getWorld().getName(), "", message);
 				cancellable = true;
 			} else {
 				plugin.setLastAction(damager, "combat");

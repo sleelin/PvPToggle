@@ -7,6 +7,14 @@ Supports multiple worlds when defined in the config file.
 Supports SuperPerms and legacy Permissions plugin.
 
 Changelog:
+v2.2.0:
+- WorldGuard region PVP flag integration
+v2.1.1:
+- Fixed non-pass of EDbyE event due to (yet another) change in citizens API  
+v2.1.0:
+- Added localisations and customisable strings throughout plugin
+v2.0.1:
+- Fixed (hopefully) NPE occurring on plugin load
 v2.0.0:
 - Fixed update checker bug
 - Rewrote config handling
@@ -19,6 +27,7 @@ v2.0.0:
 - Added toggle on command use without argument
 - Added reset command
 - Made memory use improvements
+- Redefined permissions
 v1.1.0:
 - Added automatic update checker
 - Fixed sending commands from console
