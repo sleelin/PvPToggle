@@ -24,6 +24,7 @@ import com.nijikokun.bukkit.Permissions.Permissions;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sleelin.pvptoggle.listeners.EntityListener;
 import com.sleelin.pvptoggle.listeners.PlayerListener;
+import com.sleelin.pvptoggle.listeners.RegionListener;
 import com.sleelin.pvptoggle.listeners.WorldListener;
 
 /**
@@ -50,6 +51,7 @@ public class PvPToggle extends JavaPlugin {
 	private final PlayerListener playerListener = new PlayerListener(this);
 	private final EntityListener entityListener = new EntityListener(this);
 	private final WorldListener worldListener = new WorldListener(this);
+	public RegionListener regionListener;
 	
 	// Create settings variables HashMaps
 	private HashMap<String, Object> globalsettings = new HashMap<String, Object>();
@@ -96,6 +98,11 @@ public class PvPToggle extends JavaPlugin {
 			getCommand((String) this.globalsettings.get("command")).setExecutor(new PvPCommandHandler(this));
 		} else {
 			getCommand("pvp").setExecutor(new PvPCommandHandler(this));
+		}
+		
+		if ((Boolean) this.getGlobalSetting("worldguard")){
+			regionListener = new RegionListener(this);
+			this.getServer().getPluginManager().registerEvents(this.regionListener, this);
 		}
 		
 		System.out.println("["+ this.getDescription().getName() + "] v"+this.getDescription().getVersion()+" enabled!");

@@ -1,7 +1,5 @@
 package com.sleelin.pvptoggle;
 
-import static com.sk89q.worldguard.bukkit.BukkitUtil.toVector;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.ChatColor;
@@ -10,12 +8,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.flags.Flag;
-import com.sk89q.worldguard.protection.flags.StateFlag.State;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 
 public class PvPCommandHandler implements CommandExecutor {
@@ -368,20 +360,7 @@ public class PvPCommandHandler implements CommandExecutor {
 	 */
 	private boolean WorldGuardRegionCheck(Player player, String target) {
 		if ((Boolean) plugin.getGlobalSetting("worldguard")){
-			WorldGuardPlugin worldGuard = (WorldGuardPlugin) plugin.getServer().getPluginManager().getPlugin("WorldGuard");
-			ApplicableRegionSet set = worldGuard.getRegionManager(player.getWorld()).getApplicableRegions(toVector(player.getLocation().getBlock()));
-			for (ProtectedRegion region : set){
-				for (Flag<?> flag : region.getFlags().keySet()){
-					if (flag.getName().equals("pvp")){
-						if (region.getFlag(flag).equals(State.ALLOW)){
-							PvPLocalisation.display(player, target, null, PvPLocalisation.Strings.PVP_FORCED.toString(), PvPLocalisation.Strings.WORLDGUARD_TOGGLE_DENIED);
-						} else if (region.getFlag(flag).equals(State.DENY)){
-							PvPLocalisation.display(player, target, null, PvPLocalisation.Strings.PVP_DENIED.toString(), PvPLocalisation.Strings.WORLDGUARD_TOGGLE_DENIED);
-						}
-						return false;
-					}
-				}
-			}
+			return plugin.regionListener.WorldGuardRegionCheck(player, target);
 		}
 		return true;
 	}

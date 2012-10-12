@@ -7,6 +7,8 @@ Supports multiple worlds when defined in the config file.
 Supports SuperPerms and legacy Permissions plugin.
 
 Changelog:
+v2.2.1:
+- Fixed WorldEdit dependency
 v2.2.0:
 - WorldGuard region PVP flag integration
 v2.1.1:
