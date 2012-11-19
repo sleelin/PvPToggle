@@ -18,6 +18,7 @@ import com.sk89q.worldguard.bukkit.BukkitUtil;
 
 import com.sleelin.pvptoggle.PvPLocalisation;
 import com.sleelin.pvptoggle.PvPToggle;
+import com.sleelin.pvptoggle.handlers.RegionHandler;
 
 public class RegionListener implements Listener {
 
@@ -35,17 +36,19 @@ public class RegionListener implements Listener {
 			
 			ApplicableRegionSet set = worldGuard.getRegionManager(player.getWorld()).getApplicableRegions(BukkitUtil.toVector(player.getLocation().getBlock()));
 			for (ProtectedRegion region : set){
-				for (Flag<?> flag : region.getFlags().keySet()){
-					if (flag.getName().equals("pvp")){
-						if (region.getFlag(flag).equals(StateFlag.State.ALLOW)){
-							if (!(plugin.checkPlayerStatus(player, player.getWorld().getName()))){
-								plugin.setPlayerStatus(player, player.getWorld().getName(), true);
-								PvPLocalisation.display(player, null, null, PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.WORLDGUARD_REGION_ENTERED);
-							}
-						} else if (region.getFlag(flag).equals(StateFlag.State.DENY)){
-							if (plugin.checkPlayerStatus(player, player.getWorld().getName())){
-								plugin.setPlayerStatus(player, player.getWorld().getName(), false);
-								PvPLocalisation.display(player, null, null, PvPLocalisation.Strings.PVP_DENIED.toString(), PvPLocalisation.Strings.WORLDGUARD_REGION_ENTERED);
+				if (RegionHandler.isApplicableRegion(player.getWorld().getName(), region.getId())){
+					for (Flag<?> flag : region.getFlags().keySet()){
+						if (flag.getName().equals("pvp")){
+							if (region.getFlag(flag).equals(StateFlag.State.ALLOW)){
+								if (!(plugin.checkPlayerStatus(player, player.getWorld().getName()))){
+									plugin.setPlayerStatus(player, player.getWorld().getName(), true);
+									PvPLocalisation.display(player, null, null, PvPLocalisation.Strings.PVP_ENABLED.toString(), PvPLocalisation.Strings.WORLDGUARD_REGION_ENTERED);
+								}
+							} else if (region.getFlag(flag).equals(StateFlag.State.DENY)){
+								if (plugin.checkPlayerStatus(player, player.getWorld().getName())){
+									plugin.setPlayerStatus(player, player.getWorld().getName(), false);
+									PvPLocalisation.display(player, null, null, PvPLocalisation.Strings.PVP_DENIED.toString(), PvPLocalisation.Strings.WORLDGUARD_REGION_ENTERED);
+								}
 							}
 						}
 					}
@@ -64,14 +67,16 @@ public class RegionListener implements Listener {
 			WorldGuardPlugin worldGuard = (WorldGuardPlugin) plugin.getServer().getPluginManager().getPlugin("WorldGuard");
 			ApplicableRegionSet set = worldGuard.getRegionManager(player.getWorld()).getApplicableRegions(toVector(player.getLocation().getBlock()));
 			for (ProtectedRegion region : set){
-				for (Flag<?> flag : region.getFlags().keySet()){
-					if (flag.getName().equals("pvp")){
-						if (region.getFlag(flag).equals(State.ALLOW)){
-							PvPLocalisation.display(player, target, null, PvPLocalisation.Strings.PVP_FORCED.toString(), PvPLocalisation.Strings.WORLDGUARD_TOGGLE_DENIED);
-						} else if (region.getFlag(flag).equals(State.DENY)){
-							PvPLocalisation.display(player, target, null, PvPLocalisation.Strings.PVP_DENIED.toString(), PvPLocalisation.Strings.WORLDGUARD_TOGGLE_DENIED);
+				if (RegionHandler.isApplicableRegion(player.getWorld().getName(), region.getId())){
+					for (Flag<?> flag : region.getFlags().keySet()){
+						if (flag.getName().equals("pvp")){
+							if (region.getFlag(flag).equals(State.ALLOW)){
+								PvPLocalisation.display(player, target, null, PvPLocalisation.Strings.PVP_FORCED.toString(), PvPLocalisation.Strings.WORLDGUARD_TOGGLE_DENIED);
+							} else if (region.getFlag(flag).equals(State.DENY)){
+								PvPLocalisation.display(player, target, null, PvPLocalisation.Strings.PVP_DENIED.toString(), PvPLocalisation.Strings.WORLDGUARD_TOGGLE_DENIED);
+							}
+							return false;
 						}
-						return false;
 					}
 				}
 			}

@@ -7,6 +7,13 @@ Supports multiple worlds when defined in the config file.
 Supports SuperPerms and legacy Permissions plugin.
 
 Changelog:
+v3.0.0:
+- Created PvPCommand architecture
+- Broke away command handling into separate classes per command extending PvPCommand class
+- Established internal region management, worldguard regions must now be tagged in PvPToggle
+- Added global worldguard integration option in configuration file
+- Added region command
+- Fixed NPE from player with forced or denied PvP not getting added to player pool on log in 
 v2.2.1:
 - Fixed WorldEdit dependency
 v2.2.0:

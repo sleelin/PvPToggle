@@ -1,6 +1,6 @@
 name: PvPToggle
 main: com.sleelin.pvptoggle.PvPToggle
-version: 2.2.1
+version: 3.0.0
 author: Sleelin
 description: Allows players to decide whether or not they want PvP enabled
 commands:
@@ -113,4 +113,16 @@ permissions:
         default: false
     pvptoggle.admin:
         description: Allows a player to toggle the PvP status of any other player or world
+        default: false
+    pvptoggle.regions:
+        children:
+            pvptoggle.regions.add: true
+            pvptoggle.regions.remove: true
+        description: Whether or not a player is allowed to add or remove regions
+        default: false
+    pvptoggle.regions.add:
+        description: Whether or not a player is allowed to add a region
+        default: false
+    pvptoggle.regions.remove:
+        description: Whether or not a player is allowed to remove a region
         default: false

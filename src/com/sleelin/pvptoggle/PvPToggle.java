@@ -22,6 +22,8 @@ import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sleelin.pvptoggle.handlers.CommandHandler;
+import com.sleelin.pvptoggle.handlers.RegionHandler;
 import com.sleelin.pvptoggle.listeners.EntityListener;
 import com.sleelin.pvptoggle.listeners.PlayerListener;
 import com.sleelin.pvptoggle.listeners.RegionListener;
@@ -55,7 +57,7 @@ public class PvPToggle extends JavaPlugin {
 	
 	// Create settings variables HashMaps
 	private HashMap<String, Object> globalsettings = new HashMap<String, Object>();
-	private HashMap<String, PvPWorld> worlds = new HashMap<String, PvPWorld>();
+	protected HashMap<String, PvPWorld> worlds = new HashMap<String, PvPWorld>();
 	private HashMap<Player, PvPAction> lastaction = new HashMap<Player, PvPAction>();
 	
 	// PvPToggle World class for storing world-specific settings 
@@ -78,15 +80,18 @@ public class PvPToggle extends JavaPlugin {
 	}
 	
 	public void onEnable(){
-		// Load settings
 		log.info("[" + this.getDescription().getName() + "] Loading...");
-		this.loadProcedure();
+		
+		// Load configuration files
 		PvPLocalisation.loadProcedure(this);
+		RegionHandler.loadProcedure(this);
+		this.loadProcedure();
 				
 		// Register event listeners
 		this.getServer().getPluginManager().registerEvents(this.playerListener, this);
 		this.getServer().getPluginManager().registerEvents(this.entityListener, this);
 		this.getServer().getPluginManager().registerEvents(this.worldListener, this);
+		
 		
 		// Prepare and start update checker
 		PvPToggle.version = this.getDescription().getVersion();
@@ -95,12 +100,13 @@ public class PvPToggle extends JavaPlugin {
 		
 		// Register command handlers
 		if ((((String)this.globalsettings.get("command")).equalsIgnoreCase("tpvp"))||((String)this.globalsettings.get("command")).equalsIgnoreCase("pvpt")){
-			getCommand((String) this.globalsettings.get("command")).setExecutor(new PvPCommandHandler(this));
+			getCommand((String) this.globalsettings.get("command")).setExecutor(new CommandHandler(this));
 		} else {
-			getCommand("pvp").setExecutor(new PvPCommandHandler(this));
+			getCommand("pvp").setExecutor(new CommandHandler(this));
 		}
 		
-		if ((Boolean) this.getGlobalSetting("worldguard")){
+		// Register worldguard listener
+		if ((Boolean) this.globalsettings.get("worldguard")){
 			regionListener = new RegionListener(this);
 			this.getServer().getPluginManager().registerEvents(this.regionListener, this);
 		}
@@ -130,20 +136,8 @@ public class PvPToggle extends JavaPlugin {
 		if (!this.getConfig().isSet("plugin.debug")) this.getConfig().set("plugin.debug", this.getConfig().getBoolean("debug", false));
 		if (!this.getConfig().isSet("plugin.updateinterval")) this.getConfig().set("plugin.updateinterval", this.getConfig().getInt("updateinterval", 21600));
 		if (!this.getConfig().isSet("plugin.command")) this.getConfig().set("plugin.command", "pvp");
-		
-		// Set per-world settings
-		for (World world : this.getServer().getWorlds()){
-			// Set new node values
-			if (!this.getConfig().isSet("worlds."+world.getName()+".enabled")) this.getConfig().set("worlds."+world.getName()+".enabled", this.getConfig().getBoolean("worlds."+world.getName()+".pvpenabled", true));
-			if (!this.getConfig().isSet("worlds."+world.getName()+".default")) this.getConfig().set("worlds."+world.getName()+".default", this.getConfig().getBoolean("worlds."+world.getName()+".logindefault",true));
-			if (!this.getConfig().isSet("worlds."+world.getName()+".cooldown")) this.getConfig().set("worlds."+world.getName()+".cooldown", this.getConfig().getInt("cooldown", 0));
-			if (!this.getConfig().isSet("worlds."+world.getName()+".warmup")) this.getConfig().set("worlds."+world.getName()+".warmup", this.getConfig().getInt("warmup", 0));
-			
-			// Remove redundant nodes
-			this.getConfig().set("worlds."+world.getName().toString()+".pvpenabled", null);
-			this.getConfig().set("worlds."+world.getName().toString()+".logindefault", null);
-		}
-		
+		if (!this.getConfig().isSet("plugin.worldguard-integration")) this.getConfig().set("plugin.worldguard-integration", false);
+				
 		// Remove redundant nodes
 		this.getConfig().set("cooldown", null);
 		this.getConfig().set("warmup", null);
@@ -151,8 +145,7 @@ public class PvPToggle extends JavaPlugin {
 		this.getConfig().set("debug", null);
 		this.getConfig().set("updateinterval", null);
 		
-		// Save config
-		
+		// Save config		
 		this.saveConfig();
 
 		// Load config variables or set if nonexistent
@@ -161,7 +154,7 @@ public class PvPToggle extends JavaPlugin {
 		globalsettings.put("updateinterval", this.getConfig().getInt("plugin.updateinterval", 21600));
 		globalsettings.put("command", this.getConfig().getString("plugin.command", "pvp"));
 		globalsettings.put("citizens", false);
-		globalsettings.put("worldguard", false);
+		globalsettings.put("worldguard", this.getConfig().getBoolean("plugin.worldguard-integration", false));
 		
 		// Load each world
 		for (World world : this.getServer().getWorlds()){
@@ -193,8 +186,12 @@ public class PvPToggle extends JavaPlugin {
 		
 		// Set up WorldGuard hooks
 		if ((this.getServer().getPluginManager().getPlugin("WorldGuard") != null)&&(this.getServer().getPluginManager().getPlugin("WorldGuard") instanceof WorldGuardPlugin)){
-			globalsettings.put("worldguard", true);
-			log.info("[" + this.getDescription().getName() + "] WorldGuard Plugin detected");
+			log.info("[" + this.getDescription().getName() + "] WorldGuard Plugin detected...");
+			if ((Boolean) globalsettings.get("worldguard")){
+				log.info("[" + this.getDescription().getName() + "] WorldGuard integration enabled!");
+			} else {
+				log.info("[" + this.getDescription().getName() + "] WorldGuard integration disabled via options!");
+			}
 		}
 	}
 	
@@ -205,6 +202,18 @@ public class PvPToggle extends JavaPlugin {
 	public void loadWorld(World world){
 		
 		PvPWorld pvpworld = new PvPWorld();
+		
+		// Set per-world settings
+		if (!this.getConfig().isSet("worlds."+world.getName()+".enabled")) this.getConfig().set("worlds."+world.getName()+".enabled", this.getConfig().getBoolean("worlds."+world.getName()+".pvpenabled", true));
+		if (!this.getConfig().isSet("worlds."+world.getName()+".default")) this.getConfig().set("worlds."+world.getName()+".default", this.getConfig().getBoolean("worlds."+world.getName()+".logindefault",true));
+		if (!this.getConfig().isSet("worlds."+world.getName()+".cooldown")) this.getConfig().set("worlds."+world.getName()+".cooldown", this.getConfig().getInt("cooldown", 0));
+		if (!this.getConfig().isSet("worlds."+world.getName()+".warmup")) this.getConfig().set("worlds."+world.getName()+".warmup", this.getConfig().getInt("warmup", 0));
+		
+		// Remove redundant nodes
+		this.getConfig().set("worlds."+world.getName().toString()+".pvpenabled", null);
+		this.getConfig().set("worlds."+world.getName().toString()+".logindefault", null);
+		
+		this.saveConfig();
 		
 		// Load world settings
 		pvpworld.cooldown = this.getConfig().getInt("worlds."+world.getName()+".cooldown", 0);
@@ -249,8 +258,15 @@ public class PvPToggle extends JavaPlugin {
 	 * @return whether or not PvP is enabled in the world
 	 */
 	public boolean getWorldDefault(String world){
-		if (world != null) return true; 
-		return worlds.get(world).logindefault;
+		if (world != null){
+			return worlds.get(world).logindefault;
+		} else {
+			return true;
+		}
+	}
+	
+	public PvPWorld getWorld(String world) {
+		return worlds.get(world);
 	}
 	
 	/**
@@ -289,15 +305,15 @@ public class PvPToggle extends JavaPlugin {
 	 */
 	public boolean checkPlayerStatus(Player player, String world) {
 		
-		// If forced or denied, return out
-		if (this.permissionsCheck(player, "pvptoggle.pvp.force", false)) return true;
-		if (this.permissionsCheck(player, "pvptoggle.pvp.deny", false)) return false;
-		
 		// If player not in records (after reload), add to records
 		if (!(worlds.get(world).players.containsKey(player))){
 			lastaction.put(player, new PvPAction((long) 0, "login"));
 			worlds.get(world).players.put(player, worlds.get(world).logindefault);
 		}
+		
+		// If forced or denied, return out
+		if (this.permissionsCheck(player, "pvptoggle.pvp.force", false)) return true;
+		if (this.permissionsCheck(player, "pvptoggle.pvp.deny", false)) return false;
 		
 		// Return player PvP status
 		return worlds.get(world).players.get(player);
