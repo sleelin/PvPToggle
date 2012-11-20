@@ -13,7 +13,9 @@ v3.0.0:
 - Established internal region management, worldguard regions must now be tagged in PvPToggle
 - Added global worldguard integration option in configuration file
 - Added region command
-- Fixed NPE from player with forced or denied PvP not getting added to player pool on log in 
+- Fixed NPE from player with forced or denied PvP not getting added to player pool on log in
+- Fixed enter region message and added exit region message
+- If a localisation message is blank, the message will no longer be displayed 
 v2.2.1:
 - Fixed WorldEdit dependency
 v2.2.0:

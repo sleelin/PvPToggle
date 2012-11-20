@@ -46,6 +46,8 @@ public class RegionHandler {
 			}
 		}
 		
+		plugin.log.info("[" + plugin.getDescription().getName() + "] Loaded tagged region information from regions file");
+		
 	}
 	
 	/*

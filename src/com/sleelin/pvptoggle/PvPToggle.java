@@ -84,7 +84,6 @@ public class PvPToggle extends JavaPlugin {
 		
 		// Load configuration files
 		PvPLocalisation.loadProcedure(this);
-		RegionHandler.loadProcedure(this);
 		this.loadProcedure();
 				
 		// Register event listeners
@@ -107,6 +106,7 @@ public class PvPToggle extends JavaPlugin {
 		
 		// Register worldguard listener
 		if ((Boolean) this.globalsettings.get("worldguard")){
+			RegionHandler.loadProcedure(this);
 			regionListener = new RegionListener(this);
 			this.getServer().getPluginManager().registerEvents(this.regionListener, this);
 		}

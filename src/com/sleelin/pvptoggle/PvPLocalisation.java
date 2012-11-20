@@ -67,7 +67,8 @@ public class PvPLocalisation {
 		PVP_RESET_WORLD_SENDER("&6Successfully reset all players PvP to %status% in world %world%"),
 		PVP_RESET_GLOBAL_SENDER("&6Successfully reset all players PvP across all worlds!"),
 		
-		WORLDGUARD_REGION_ENTERED("&6Forced PvP %status% region entered"),
+		WORLDGUARD_REGION_ENTERED("&6Forced PvP %status% region '%target%' entered"),
+		WORLDGUARD_REGION_EXIT("&6Forced PvP %status% region '%target%' exited"),
 		WORLDGUARD_TOGGLE_DENIED("&cPvP is %status% in %target% region!"),
 		WORLDGUARD_REGION_ADDED("&6Region %target% added to world %world%"),
 		WORLDGUARD_REGION_REMOVED("&6Region %target% removed from world %world%"),
@@ -125,7 +126,7 @@ public class PvPLocalisation {
 	public static void display(CommandSender sender, String target, String world, String status, Strings string){
 		String[] search = {"%sender%", "%target%", "%world%", "%status%"};
 		String[] replace = {sender.getName(), target, world, status};
-		sender.sendMessage(replaceVars(string.toString(), search, replace));
+		if (!string.toString().equalsIgnoreCase("")) sender.sendMessage(replaceVars(string.toString(), search, replace));
 	}
 	
 	/*
