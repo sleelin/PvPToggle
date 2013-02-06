@@ -276,11 +276,23 @@ public class PvPToggle extends JavaPlugin {
 	 */
 	public String checkWorldName(String targetworld){
 		String output = null;
+		String possible = null;
+		boolean multipleMatch = false;
 		for (World world : this.getServer().getWorlds()){
-			if (world.getName().toLowerCase().contains(targetworld.toLowerCase())){
+			if (world.getName().equalsIgnoreCase(targetworld)){
 				output = world.getName();
 				break;
 			}
+			if (world.getName().toLowerCase().contains(targetworld.toLowerCase())) {
+				if (possible != null) {
+					multipleMatch = true;
+				} else {
+					possible = world.getName();
+				}
+			}
+		}
+		if(!multipleMatch && output == null) {
+			output = possible;
 		}
 		return output;
 	}
